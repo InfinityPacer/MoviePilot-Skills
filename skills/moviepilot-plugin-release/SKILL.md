@@ -19,7 +19,20 @@ Auto-merge 和 `main` Release workflow，不直接 push `main`。
 2. 运行 `git status --short --branch`，保留并避开用户已有改动。
 3. v2 插件只修改 `plugins.v2/<plugin_id>/` 和 `package.v2.json`；除非用户明确要求，
    不修改 `plugins/`。
-4. 若当前在 `main`，从最新 `origin/main` 创建当前代理对应的协作分支：
+4. 运行 `git fetch origin main`，以 `origin/main` 作为发布基线。若当前不在 `main`，
+   必须核对当前分支与 `origin/main` 的关系和提交范围：
+
+   ```bash
+   git merge-base --is-ancestor origin/main HEAD
+   git log --oneline origin/main..HEAD
+   git log --oneline HEAD..origin/main
+   ```
+
+   若分支不是基于最新 `origin/main`，或 `origin/main..HEAD` 包含旧版本发布、无关修复、
+   其他插件改动等非本次发版提交，停止在原分支继续发版；从 `origin/main` 创建干净分支，
+   仅 cherry-pick 或重做本次必要改动。不得为了“快速解决冲突”在旧发布分支上继续堆提交。
+5. 从最新 `origin/main` 创建当前代理对应的协作分支。若目标分支名已存在且不能确认只包含
+   本次发版提交，追加短后缀创建新分支，例如 `-clean` 或日期后缀：
    - Codex：`codex/release/<plugin>-<version>`
    - Claude Code：`claude/release/<plugin>-<version>`
 
@@ -88,6 +101,17 @@ git diff --check
 
 commit、push 后，用真实换行的临时 Markdown 文件创建中文 PR：
 
+创建 PR 前再次确认本地 `main` 信息已刷新，且 PR head 只包含本次发版提交：
+
+```bash
+git fetch origin main
+git log --oneline origin/main..HEAD
+git diff --name-only origin/main...HEAD
+```
+
+提交列表或文件列表出现旧版本发布、无关插件、无关仓库元数据时，停止创建 PR，改用干净
+分支重做；不要依赖 GitHub 冲突提示后再补救。
+
 ```bash
 gh pr create \
   --repo InfinityPacer/MoviePilot-Plugins \
@@ -113,6 +137,8 @@ Issue 关联按以下规则写入正文：
 Ruleset 生效前提前启用，否则 PR 可能在没有保护条件时直接合并。
 
 回读 PR 时同时确认 issue 编号、所属仓库和 `Fixes` / `Refs` 语义正确。
+回读 PR 时还必须确认 `baseRefName` 为 `main`、`headRefName` 为本次分支、提交列表和
+changed files 与本次发版范围一致；不一致时关闭该 PR，创建干净分支后重新提 PR。
 
 只对刚创建并核对过 URL/编号与 head SHA 的 PR 启用：
 
@@ -175,5 +201,6 @@ Markdown、链接和公开信息无误。
 | 本地 Hook 没执行 | 检查 `core.hooksPath`，不要覆盖已有自定义路径 |
 | PR 检查通过就宣称发布完成 | 继续回查合并、Release workflow、tag 和资产 |
 | 自动合并流程中连续回复两次 issue | 正常情况下等待 Release 完成后只回复一次；仅在流程阻塞或需用户介入时先发进度评论 |
+| 旧发布分支带入历史提交导致 PR 冲突 | 从最新 `origin/main` 创建干净分支，只带本次发版提交 |
 | 为所有 PR 开启 Auto-merge | 只操作本次 skill 创建并核对过 head SHA 的 PR |
 | 为赶发版使用 `--admin` 或 `--no-verify` | 修复门禁失败原因，不绕过保护 |
