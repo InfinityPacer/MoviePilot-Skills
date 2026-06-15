@@ -146,6 +146,29 @@ gh pr view <number> \
 不得启用 Auto-merge，不得代替上游维护者合并。用户只要求提交 PR 时，PR 创建并回读后
 即可交付；若用户要求跟进 CI/review，则继续到对应结果明确为止。
 
+## 6. 回复来源 Issue
+
+若改动来源于 issue，PR 创建后回复 issue：
+
+- 明确写“已提交 PR”，附 PR URL，并简述改动和验证结果；
+- PR 尚未合并时不得写“已完成”“已修复”或承诺已进入正式版本；
+- issue 与 PR 跨仓时，同时写明目标仓库，避免只贴短编号造成歧义。
+
+合并或发布后再回写最终结果；本流程的终态是上游 PR 已合并。
+
+使用真实换行的临时 Markdown 文件发布，并回读 issue 最后一条评论：
+
+```bash
+gh issue comment <issue-number> \
+  --repo <issue-owner>/<issue-repo> \
+  --body-file <body-file>
+```
+
+PR 合并后，若任务要求跟进结果，再回复合并状态与 PR/merge commit 链接。使用
+`Fixes #<number>` 的同仓 issue 由合并自动关闭；使用 `Refs #<number>` 或完整 URL
+关联时不主动关闭，除非维护者明确要求。每次发布评论后都要回读 issue，确认 Markdown、
+链接和公开信息无误。
+
 ## 常见错误
 
 | 错误 | 处理 |

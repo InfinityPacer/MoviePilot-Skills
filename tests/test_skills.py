@@ -81,6 +81,30 @@ def test_delivery_router_does_not_duplicate_issue_link_policy() -> None:
     assert "Refs #<number>" not in skill
 
 
+def test_execution_skills_reply_to_issue_before_and_after_delivery() -> None:
+    """Issue 来源的交付必须回帖，并区分 PR 已提交与结果已完成。"""
+    for name in ("moviepilot-upstream-pr", "moviepilot-plugin-release"):
+        skill = _read_skill(name)
+
+        assert "PR 创建后回复 issue" in skill
+        assert "已提交 PR" in skill
+        assert "不得写“已完成”" in skill
+        assert "合并或发布后" in skill
+        assert "gh issue comment" in skill
+        assert "--body-file" in skill
+        assert "回读 issue" in skill
+        assert "使用 `Refs`" in skill
+        assert "不主动关闭" in skill
+
+
+def test_delivery_router_does_not_duplicate_issue_reply_workflow() -> None:
+    """路由 skill 不承载 issue 回帖命令和交付状态措辞。"""
+    skill = _read_skill("moviepilot-delivery")
+
+    assert "gh issue comment" not in skill
+    assert "PR 创建后回复 issue" not in skill
+
+
 def test_every_skill_has_codex_metadata() -> None:
     """每个 skill 都必须提供 Codex UI 元数据。"""
     for name in (

@@ -137,6 +137,29 @@ gh pr merge <pr-number> \
 
 若 workflow 失败，读取失败 step 和日志，修复后重新走分支 PR；不要直接改 `main`。
 
+## 8. 回复来源 Issue
+
+若改动来源于 issue，PR 创建后回复 issue：
+
+- 明确写“已提交 PR”，附 PR URL，并简述改动和验证结果；
+- PR 或 Release 尚未完成时不得写“已完成”“已修复”或宣称新版本已经发布；
+- issue 与 PR 跨仓时，同时写明目标仓库，避免只贴短编号造成歧义。
+
+合并或发布后再回写最终结果；本流程的终态是 PR 已合并且 GitHub Release 成功。
+
+使用真实换行的临时 Markdown 文件发布，并回读 issue 最后一条评论：
+
+```bash
+gh issue comment <issue-number> \
+  --repo <issue-owner>/<issue-repo> \
+  --body-file <body-file>
+```
+
+PR 合并且 GitHub Release 成功后，回复最终版本、Release URL 与必要的验证结论。使用
+`Fixes #<number>` 的同仓 issue 由合并自动关闭；使用 `Refs #<number>` 或完整 URL
+关联时不主动关闭，除非维护者明确要求。每次发布评论后都要回读 issue，确认 Markdown、
+链接和公开信息无误。
+
 ## 常见错误
 
 | 错误 | 处理 |
