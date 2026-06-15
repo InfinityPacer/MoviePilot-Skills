@@ -81,20 +81,33 @@ def test_delivery_router_does_not_duplicate_issue_link_policy() -> None:
     assert "Refs #<number>" not in skill
 
 
-def test_execution_skills_reply_to_issue_before_and_after_delivery() -> None:
-    """Issue 来源的交付必须回帖，并区分 PR 已提交与结果已完成。"""
-    for name in ("moviepilot-upstream-pr", "moviepilot-plugin-release"):
-        skill = _read_skill(name)
+def test_upstream_skill_replies_to_issue_before_and_after_delivery() -> None:
+    """上游 PR 无法自行完成合并，必须区分 PR 已提交与结果已完成。"""
+    skill = _read_skill("moviepilot-upstream-pr")
 
-        assert "PR 创建后回复 issue" in skill
-        assert "已提交 PR" in skill
-        assert "不得写“已完成”" in skill
-        assert "合并或发布后" in skill
-        assert "gh issue comment" in skill
-        assert "--body-file" in skill
-        assert "回读 issue" in skill
-        assert "使用 `Refs`" in skill
-        assert "不主动关闭" in skill
+    assert "PR 创建后回复 issue" in skill
+    assert "已提交 PR" in skill
+    assert "不得写“已完成”" in skill
+    assert "合并或发布后" in skill
+    assert "gh issue comment" in skill
+    assert "--body-file" in skill
+    assert "回读 issue" in skill
+    assert "使用 `Refs`" in skill
+    assert "不主动关闭" in skill
+
+
+def test_plugin_release_replies_once_unless_delivery_is_blocked() -> None:
+    """快速自动发布默认只回最终结果，阻塞或需介入时才先发进度。"""
+    skill = _read_skill("moviepilot-plugin-release")
+
+    assert "默认只在 PR 合并且 GitHub Release 成功后回复一次最终结果" in skill
+    assert "Required Check、合并或 Release 被阻塞" in skill
+    assert "需要维护者操作、补充信息或做出决定" in skill
+    assert "用户明确要求在 PR 创建后立即同步" in skill
+    assert "gh issue comment" in skill
+    assert "--body-file" in skill
+    assert "回读 issue" in skill
+    assert "不主动关闭" in skill
 
 
 def test_delivery_router_does_not_duplicate_issue_reply_workflow() -> None:
