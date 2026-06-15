@@ -1,0 +1,73 @@
+"""验证 MoviePilot 交付技能的结构、触发边界和关键安全约束。"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SKILLS_ROOT = REPO_ROOT / "skills"
+
+
+def _read_skill(name: str) -> str:
+    """读取指定 skill，缺失时让 pytest 以明确路径失败。"""
+    return (SKILLS_ROOT / name / "SKILL.md").read_text(encoding="utf-8")
+
+
+def test_repository_contains_two_independent_skills() -> None:
+    """技能仓必须维护一个路由入口和两个独立执行流程。"""
+    names = {path.name for path in SKILLS_ROOT.iterdir() if path.is_dir()}
+
+    assert names == {
+        "moviepilot-delivery",
+        "moviepilot-upstream-pr",
+        "moviepilot-plugin-release",
+    }
+
+
+def test_delivery_skill_routes_by_repository_without_duplicating_workflows() -> None:
+    """模糊的“PR/发版”请求必须按当前仓库转交专用 skill。"""
+    skill = _read_skill("moviepilot-delivery")
+
+    assert "MoviePilot-Frontend" in skill
+    assert "MoviePilot-Plugins" in skill
+    assert "moviepilot-upstream-pr" in skill
+    assert "moviepilot-plugin-release" in skill
+    assert "先检查当前仓库" in skill
+    assert "gh pr create" not in skill
+    assert "check_plugin_versions.py" not in skill
+
+
+def test_upstream_skill_targets_forks_and_never_auto_merges() -> None:
+    """主程序 skill 必须面向 jxxghp/v2，并将合并权留给上游维护者。"""
+    skill = _read_skill("moviepilot-upstream-pr")
+
+    assert "jxxghp/MoviePilot" in skill
+    assert "jxxghp/MoviePilot-Frontend" in skill
+    assert "upstream" in skill
+    assert "v2" in skill
+    assert "不得启用 Auto-merge" in skill
+    assert "commit、push 前" in skill
+
+
+def test_plugin_skill_keeps_release_and_auto_merge_closure() -> None:
+    """插件 skill 必须保留自有仓自动合并与 Release 回查闭环。"""
+    skill = _read_skill("moviepilot-plugin-release")
+
+    assert "InfinityPacer/MoviePilot-Plugins" in skill
+    assert "Plugin release gate" in skill
+    assert "--auto --squash" in skill
+    assert "GitHub Release" in skill
+    assert "commit 或 push" in skill
+
+
+def test_every_skill_has_codex_metadata() -> None:
+    """每个 skill 都必须提供 Codex UI 元数据。"""
+    for name in (
+        "moviepilot-delivery",
+        "moviepilot-upstream-pr",
+        "moviepilot-plugin-release",
+    ):
+        metadata = SKILLS_ROOT / name / "agents/openai.yaml"
+        assert metadata.is_file(), metadata
+        assert f"${name}" in metadata.read_text(encoding="utf-8")

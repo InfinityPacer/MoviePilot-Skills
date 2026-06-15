@@ -1,0 +1,4 @@
+interface:
+  display_name: "MoviePilot 交付路由"
+  short_description: "根据当前 MoviePilot 仓库将 PR 或发版请求路由到专用流程"
+  default_prompt: "Use $moviepilot-delivery to route this MoviePilot PR or release request to the correct workflow."

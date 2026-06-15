@@ -1,0 +1,4 @@
+interface:
+  display_name: "MoviePilot 上游 PR"
+  short_description: "验证并提交 MoviePilot 前后端上游 Pull Request 流程"
+  default_prompt: "Use $moviepilot-upstream-pr to prepare and submit a MoviePilot backend or frontend pull request."
