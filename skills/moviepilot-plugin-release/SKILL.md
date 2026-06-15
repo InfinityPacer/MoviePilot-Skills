@@ -101,9 +101,18 @@ PR 必须包含变更说明、影响路径、验证结果和协作来源。纯 C
 “本 PR 为 Codex 协作提交”，纯 Claude Code 写“本 PR 为 Claude Code 协作提交”；
 两者都实际参与时写“本 PR 为 Claude Code & Codex 协作提交”。
 
+Issue 关联按以下规则写入正文：
+
+- 同仓 issue，修复已确认且 PR 合并后应自动关闭：`Fixes #<number>`；
+- 同仓 issue，仅作背景、讨论或不应自动关闭：`Refs #<number>`；
+- issue 与 PR 不在同一仓库：使用 issue 完整 URL，不依赖短编号；
+- 无法确认是否应自动关闭时，默认使用 `Refs`，不得擅自关闭 issue。
+
 回读 PR 正文确认渲染和隐私无误，并等待 `Plugin release gate` 至少出现一次。仓库首次
 启用保护时，先创建要求该检查的 `main` Ruleset，再为 PR 启用 Auto-merge；不得在
 Ruleset 生效前提前启用，否则 PR 可能在没有保护条件时直接合并。
+
+回读 PR 时同时确认 issue 编号、所属仓库和 `Fixes` / `Refs` 语义正确。
 
 只对刚创建并核对过 URL/编号与 head SHA 的 PR 启用：
 

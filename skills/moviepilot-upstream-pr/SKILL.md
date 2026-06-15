@@ -108,6 +108,13 @@ gh pr create \
 - 关联 issue 或联动 PR；
 - 实际协作来源。
 
+Issue 关联按以下规则写入正文：
+
+- 同仓 issue，修复已确认且 PR 合并后应自动关闭：`Fixes #<number>`；
+- 同仓 issue，仅作背景、讨论或不应自动关闭：`Refs #<number>`；
+- issue 与 PR 不在同一仓库：使用 issue 完整 URL，不依赖短编号；
+- 无法确认是否应自动关闭时，默认使用 `Refs`，不得擅自关闭 issue。
+
 协作来源固定写在末尾：
 
 - 仅 Codex：`本 PR 为 Codex 协作提交`
@@ -131,9 +138,10 @@ gh pr view <number> \
 
 1. base 为 `v2`，head 为 `InfinityPacer:<branch>`；
 2. 正文真实分段且没有隐私信息；
-3. CI 已出现，并区分等待、失败和成功；
-4. review 或 requested changes 已如实报告；
-5. 后续 push 后 head SHA 与 PR 一致。
+3. 回读 PR 后确认 issue 编号、仓库和 `Fixes` / `Refs` 语义正确；
+4. CI 已出现，并区分等待、失败和成功；
+5. review 或 requested changes 已如实报告；
+6. 后续 push 后 head SHA 与 PR 一致。
 
 不得启用 Auto-merge，不得代替上游维护者合并。用户只要求提交 PR 时，PR 创建并回读后
 即可交付；若用户要求跟进 CI/review，则继续到对应结果明确为止。

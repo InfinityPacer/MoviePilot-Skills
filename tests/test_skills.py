@@ -61,6 +61,26 @@ def test_plugin_skill_keeps_release_and_auto_merge_closure() -> None:
     assert "commit 或 push" in skill
 
 
+def test_execution_skills_handle_issue_links_without_accidental_closure() -> None:
+    """Issue 来源的改动必须正确关联，且不确定时不得擅自自动关闭。"""
+    for name in ("moviepilot-upstream-pr", "moviepilot-plugin-release"):
+        skill = _read_skill(name)
+
+        assert "Fixes #<number>" in skill
+        assert "Refs #<number>" in skill
+        assert "完整 URL" in skill
+        assert "默认使用 `Refs`" in skill
+        assert "回读 PR" in skill
+
+
+def test_delivery_router_does_not_duplicate_issue_link_policy() -> None:
+    """路由 skill 只负责选流程，不维护 issue 关闭语义。"""
+    skill = _read_skill("moviepilot-delivery")
+
+    assert "Fixes #<number>" not in skill
+    assert "Refs #<number>" not in skill
+
+
 def test_every_skill_has_codex_metadata() -> None:
     """每个 skill 都必须提供 Codex UI 元数据。"""
     for name in (
