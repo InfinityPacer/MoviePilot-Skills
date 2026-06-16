@@ -57,8 +57,18 @@ def test_plugin_skill_keeps_release_and_auto_merge_closure() -> None:
     assert "InfinityPacer/MoviePilot-Plugins" in skill
     assert "Plugin release gate" in skill
     assert "--auto --squash" in skill
+    assert "--delete-branch" not in skill
     assert "GitHub Release" in skill
     assert "commit 或 push" in skill
+
+
+def test_plugin_skill_syncs_local_main_after_merge_and_keeps_branch() -> None:
+    """插件 PR 合并后必须同步本地 main，默认保留合并分支。"""
+    skill = _read_skill("moviepilot-plugin-release")
+
+    assert "git checkout main" in skill
+    assert "git pull --ff-only origin main" in skill
+    assert "默认保留本地和远程合并分支" in skill
 
 
 def test_execution_skills_handle_issue_links_without_accidental_closure() -> None:

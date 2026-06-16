@@ -145,11 +145,11 @@ changed files 与本次发版范围一致；不一致时关闭该 PR，创建干
 ```bash
 gh pr merge <pr-number> \
   --repo InfinityPacer/MoviePilot-Plugins \
-  --auto --squash --delete-branch \
+  --auto --squash \
   --match-head-commit <head-sha>
 ```
 
-不得扫描并批量启用其他 PR 的 Auto-merge，不得使用 `--admin` 绕过 Ruleset。
+不得扫描并批量启用其他 PR 的 Auto-merge，不得使用 `--admin` 绕过 Ruleset。默认保留本地和远程合并分支，除非维护者明确要求清理。
 
 ## 7. 回查发布
 
@@ -160,6 +160,18 @@ gh pr merge <pr-number> \
 3. tag 为 `<PluginId>_v<version>`；
 4. Release 标题、说明和 zip 资产版本正确；
 5. `main` 上 `package`、README 和 `plugin_version` 仍一致。
+
+PR 合并并完成上述回查后，把远程 `main` 更新到本地 `main`，但不要清理刚合并的协作分支：
+
+```bash
+git fetch origin main
+git checkout main
+git pull --ff-only origin main
+git status --short --branch
+```
+
+如果本地工作树不干净或切换 `main` 会覆盖用户改动，停止同步并说明阻塞原因；不要 stash、
+reset 或删除分支来强行收尾。
 
 若 workflow 失败，读取失败 step 和日志，修复后重新走分支 PR；不要直接改 `main`。
 
@@ -200,6 +212,7 @@ Markdown、链接和公开信息无误。
 | Required Check 一直缺失 | PR workflow 不得使用 `paths` 过滤 |
 | 本地 Hook 没执行 | 检查 `core.hooksPath`，不要覆盖已有自定义路径 |
 | PR 检查通过就宣称发布完成 | 继续回查合并、Release workflow、tag 和资产 |
+| PR 合并后本地仍停在旧分支或旧 main | 快进本地 `main` 到 `origin/main`，保留合并分支不清理 |
 | 自动合并流程中连续回复两次 issue | 正常情况下等待 Release 完成后只回复一次；仅在流程阻塞或需用户介入时先发进度评论 |
 | 旧发布分支带入历史提交导致 PR 冲突 | 从最新 `origin/main` 创建干净分支，只带本次发版提交 |
 | 为所有 PR 开启 Auto-merge | 只操作本次 skill 创建并核对过 head SHA 的 PR |
