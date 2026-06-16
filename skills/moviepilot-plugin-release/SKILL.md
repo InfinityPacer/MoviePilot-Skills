@@ -70,7 +70,7 @@ git config --get core.hooksPath
 
 ## 4. 验证
 
-使用工作区 `.venv-test`，worktree 中显式指定后端：
+使用工作区 `.venv-test`，插件仓测试必须显式指定后端：
 
 ```bash
 MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot \
