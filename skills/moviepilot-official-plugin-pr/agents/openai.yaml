@@ -1,0 +1,4 @@
+interface:
+  display_name: "MoviePilot 官方插件 PR"
+  short_description: "官方插件仓 fork 到 jxxghp main 的 PR 提交流程"
+  default_prompt: "Use $moviepilot-official-plugin-pr to submit a MoviePilot official plugin pull request."

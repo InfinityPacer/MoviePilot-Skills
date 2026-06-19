@@ -42,13 +42,13 @@ git fetch upstream v2
 在仓库根运行：
 
 ```bash
-<workspace>/.venv-test/bin/python tests/run.py
+env -u CONFIG_DIR <workspace>/.venv-test/bin/python tests/run.py
 pylint app
 git diff --check
 ```
 
-`tests/run.py` 必须零真实出站。若 `pylint app` 存在与本次无关的基线失败，记录完整边界；
-不能把未运行写成通过，也不能用局部测试冒充全量测试。
+`CONFIG_DIR` 不得从本地运行态环境泄漏进单测；`tests/run.py` 必须零真实出站。若 `pylint app`
+存在与本次无关的基线失败，记录完整边界；不能把未运行写成通过，也不能用局部测试冒充全量测试。
 
 ### 前端 `MoviePilot-Frontend`
 

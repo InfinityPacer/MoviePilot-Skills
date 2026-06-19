@@ -1,0 +1,4 @@
+interface:
+  display_name: "MoviePilot 开发路由"
+  short_description: "按仓库选择 MoviePilot 本地开发与调试流程"
+  default_prompt: "Use $moviepilot-development to choose the right MoviePilot development workflow."

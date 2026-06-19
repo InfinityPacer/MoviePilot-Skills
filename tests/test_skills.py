@@ -14,12 +14,16 @@ def _read_skill(name: str) -> str:
     return (SKILLS_ROOT / name / "SKILL.md").read_text(encoding="utf-8")
 
 
-def test_repository_contains_two_independent_skills() -> None:
-    """技能仓必须维护一个路由入口和两个独立执行流程。"""
+def test_repository_contains_development_and_delivery_skills() -> None:
+    """技能仓必须维护开发入口、交付入口和各仓库专用执行流程。"""
     names = {path.name for path in SKILLS_ROOT.iterdir() if path.is_dir()}
 
     assert names == {
         "moviepilot-delivery",
+        "moviepilot-development",
+        "moviepilot-main-development",
+        "moviepilot-plugin-development",
+        "moviepilot-official-plugin-pr",
         "moviepilot-upstream-pr",
         "moviepilot-plugin-release",
     }
@@ -31,11 +35,104 @@ def test_delivery_skill_routes_by_repository_without_duplicating_workflows() -> 
 
     assert "MoviePilot-Frontend" in skill
     assert "MoviePilot-Plugins" in skill
+    assert "MoviePilot-Plugins-Official" in skill
     assert "moviepilot-upstream-pr" in skill
     assert "moviepilot-plugin-release" in skill
+    assert "moviepilot-official-plugin-pr" in skill
     assert "先检查当前仓库" in skill
     assert "gh pr create" not in skill
     assert "check_plugin_versions.py" not in skill
+
+
+def test_development_router_routes_without_duplicating_workflows() -> None:
+    """开发路由只选择主程序/插件开发流程，不承载具体分支与测试命令。"""
+    skill = _read_skill("moviepilot-development")
+
+    assert "MoviePilot-Frontend" in skill
+    assert "MoviePilot-Plugins" in skill
+    assert "MoviePilot-Plugins-Official" in skill
+    assert "moviepilot-main-development" in skill
+    assert "moviepilot-plugin-development" in skill
+    assert "先检查当前仓库" in skill
+    assert "git checkout -b" not in skill
+    assert "pytest" not in skill
+
+
+def test_main_development_skill_separates_runtime_env_from_test_isolation() -> None:
+    """主程序开发必须区分 Docker-style 运行态 env-file 与单测隔离环境。"""
+    skill = _read_skill("moviepilot-main-development")
+
+    assert "upstream/v2" in skill
+    assert "MoviePilot-Frontend" in skill
+    assert "Docker-style env-file" in skill
+    assert "<workspace>/app.env" in skill
+    assert "不得读取 env-file 内容" in skill
+    assert "不得打印、提交、复制" in skill
+    assert "当前 env-file 不应包含" not in skill
+    assert "env -u CONFIG_DIR" in skill
+    assert ".venv-test/bin/python tests/run.py" in skill
+    assert "moviepilot-upstream-pr" in skill
+
+
+def test_plugin_development_skill_handles_personal_and_official_repositories() -> None:
+    """插件开发必须按 remote 分流个人插件仓和官方插件 fork。"""
+    skill = _read_skill("moviepilot-plugin-development")
+
+    assert "InfinityPacer/MoviePilot-Plugins" in skill
+    assert "MoviePilot-Plugins-Official" in skill
+    assert "jxxghp/MoviePilot-Plugins" in skill
+    assert "origin/main" in skill
+    assert "upstream/main" in skill
+    assert "MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot" in skill
+    assert "env -u CONFIG_DIR" in skill
+    assert "PLUGIN_LOCAL_REPO_PATHS" in skill
+    assert "moviepilot-plugin-release" in skill
+    assert "moviepilot-official-plugin-pr" in skill
+
+
+def test_branch_names_match_task_type_and_reserve_release_prefix() -> None:
+    """非发版流程必须使用任务类型命名，release 前缀只留给真实发版。"""
+    generic_branch_skills = (
+        "moviepilot-main-development",
+        "moviepilot-plugin-development",
+        "moviepilot-upstream-pr",
+        "moviepilot-official-plugin-pr",
+    )
+
+    for name in generic_branch_skills:
+        skill = _read_skill(name)
+
+        assert "codex/<type>/<topic>" in skill
+        assert "claude/<type>/<topic>" in skill
+        assert "codex/release/" not in skill
+        assert "claude/release/" not in skill
+
+    delivery = _read_skill("moviepilot-delivery")
+    assert "发版、发布插件、版本升级、插件 PR" not in delivery
+    assert "非发版插件 PR" in delivery
+
+    release = _read_skill("moviepilot-plugin-release")
+    assert "preparing a pull request" not in release
+    assert "普通维护、CI、文档或非版本发布 PR 不使用本 skill" in release
+    assert "codex/release/<plugin>-<version>" in release
+    assert "claude/release/<plugin>-<version>" in release
+
+
+def test_official_plugin_pr_skill_targets_upstream_main_without_release_flow() -> None:
+    """官方插件仓 PR 流程必须面向 jxxghp/main，且不得执行个人仓发版动作。"""
+    skill = _read_skill("moviepilot-official-plugin-pr")
+
+    assert "MoviePilot-Plugins-Official" in skill
+    assert "jxxghp/MoviePilot-Plugins" in skill
+    assert "upstream/main" in skill
+    assert "origin" in skill
+    assert "--base main" in skill
+    assert "--head InfinityPacer:" in skill
+    assert "Plugin release gate" in skill
+    assert "不得启用 Auto-merge" in skill
+    assert "不得运行个人仓自动合并或发布回查步骤" in skill
+    for forbidden in ("--auto --squash", "gh pr merge", "--admin", "GitHub Release", "Plugin Release", "Release workflow"):
+        assert forbidden not in skill
 
 
 def test_upstream_skill_targets_forks_and_never_auto_merges() -> None:
@@ -46,6 +143,7 @@ def test_upstream_skill_targets_forks_and_never_auto_merges() -> None:
     assert "jxxghp/MoviePilot-Frontend" in skill
     assert "upstream" in skill
     assert "v2" in skill
+    assert "env -u CONFIG_DIR" in skill
     assert "不得启用 Auto-merge" in skill
     assert "commit、push 前" in skill
 
@@ -55,6 +153,7 @@ def test_plugin_skill_keeps_release_and_auto_merge_closure() -> None:
     skill = _read_skill("moviepilot-plugin-release")
 
     assert "InfinityPacer/MoviePilot-Plugins" in skill
+    assert "env -u CONFIG_DIR" in skill
     assert "Plugin release gate" in skill
     assert "--auto --squash" in skill
     assert "--delete-branch" not in skill
@@ -132,6 +231,10 @@ def test_every_skill_has_codex_metadata() -> None:
     """每个 skill 都必须提供 Codex UI 元数据。"""
     for name in (
         "moviepilot-delivery",
+        "moviepilot-development",
+        "moviepilot-main-development",
+        "moviepilot-plugin-development",
+        "moviepilot-official-plugin-pr",
         "moviepilot-upstream-pr",
         "moviepilot-plugin-release",
     ):

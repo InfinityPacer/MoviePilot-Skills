@@ -1,0 +1,4 @@
+interface:
+  display_name: "MoviePilot 主程序开发"
+  short_description: "MoviePilot 后端和前端本地开发、测试、调试流程"
+  default_prompt: "Use $moviepilot-main-development for MoviePilot backend or frontend development."

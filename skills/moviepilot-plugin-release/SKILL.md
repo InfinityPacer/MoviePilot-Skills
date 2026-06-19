@@ -1,6 +1,6 @@
 ---
 name: moviepilot-plugin-release
-description: Use when publishing, releasing, version-bumping, or preparing a pull request for a v1 or v2 plugin in the InfinityPacer/MoviePilot-Plugins repository.
+description: Use when publishing, releasing, version-bumping, or preparing a release pull request for a v1 or v2 plugin in the InfinityPacer/MoviePilot-Plugins repository.
 ---
 
 # MoviePilot 插件发版
@@ -12,6 +12,8 @@ description: Use when publishing, releasing, version-bumping, or preparing a pul
 
 只操作 `InfinityPacer/MoviePilot-Plugins`。发版统一走功能分支、PR Required Check、
 Auto-merge 和 `main` Release workflow，不直接 push `main`。
+普通维护、CI、文档或非版本发布 PR 不使用本 skill；先使用 `moviepilot-plugin-development`
+确认任务类型和分支命名。
 
 ## 1. 确认范围
 
@@ -31,8 +33,10 @@ Auto-merge 和 `main` Release workflow，不直接 push `main`。
    若分支不是基于最新 `origin/main`，或 `origin/main..HEAD` 包含旧版本发布、无关修复、
    其他插件改动等非本次发版提交，停止在原分支继续发版；从 `origin/main` 创建干净分支，
    仅 cherry-pick 或重做本次必要改动。不得为了“快速解决冲突”在旧发布分支上继续堆提交。
-5. 从最新 `origin/main` 创建当前代理对应的协作分支。若目标分支名已存在且不能确认只包含
-   本次发版提交，追加短后缀创建新分支，例如 `-clean` 或日期后缀：
+5. 从最新 `origin/main` 创建当前代理对应的发版协作分支。`release` 前缀只用于真实版本升级
+   或 GitHub Release 闭环；普通维护、门禁、文档和 CI 修复按任务类型命名并转回开发或对应
+   PR 流程。若目标分支名已存在且不能确认只包含本次发版提交，追加短后缀创建新分支，
+   例如 `-clean` 或日期后缀：
    - Codex：`codex/release/<plugin>-<version>`
    - Claude Code：`claude/release/<plugin>-<version>`
 
@@ -73,9 +77,9 @@ git config --get core.hooksPath
 使用工作区 `.venv-test`，插件仓测试必须显式指定后端：
 
 ```bash
-MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot \
+env -u CONFIG_DIR MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot \
   <workspace>/.venv-test/bin/python -m pytest tests/<v1|v2>/<plugin_id> -q
-MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot \
+env -u CONFIG_DIR MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot \
   <workspace>/.venv-test/bin/python tests/run.py -q
 python .github/scripts/check_plugin_versions.py package.json package.v2.json
 python -m json.tool package.v2.json >/dev/null
@@ -83,7 +87,8 @@ python -m compileall -q plugins.v2/<plugin_id>
 git diff --check
 ```
 
-外部服务必须 mock；全量测试不得真实出站。任何失败都要修复或明确报告，不能带失败进入 PR。
+`CONFIG_DIR` 不得从本地运行态环境泄漏进单测；外部服务必须 mock，全量测试不得真实出站。
+任何失败都要修复或明确报告，不能带失败进入 PR。
 
 ## 5. 提交前确认
 

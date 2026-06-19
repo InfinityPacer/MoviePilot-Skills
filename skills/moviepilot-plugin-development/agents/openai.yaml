@@ -1,0 +1,4 @@
+interface:
+  display_name: "MoviePilot 插件开发"
+  short_description: "个人与官方插件仓本地开发、测试和热加载流程"
+  default_prompt: "Use $moviepilot-plugin-development for MoviePilot plugin repository development."
