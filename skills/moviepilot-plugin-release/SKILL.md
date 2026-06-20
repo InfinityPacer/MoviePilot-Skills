@@ -80,7 +80,10 @@ git config --get core.hooksPath
 env -u CONFIG_DIR MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot \
   <workspace>/.venv-test/bin/python -m pytest tests/<v1|v2>/<plugin_id> -q
 env -u CONFIG_DIR MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot \
+  <workspace>/.venv-test/bin/python scripts/plugin_coverage.py
+env -u CONFIG_DIR MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot \
   <workspace>/.venv-test/bin/python tests/run.py -q
+python scripts/check_new_plugin_tests.py --base-ref origin/main
 python .github/scripts/check_plugin_versions.py package.json package.v2.json
 python -m json.tool package.v2.json >/dev/null
 python -m compileall -q plugins.v2/<plugin_id>
@@ -88,6 +91,11 @@ git diff --check
 ```
 
 `CONFIG_DIR` 不得从本地运行态环境泄漏进单测；外部服务必须 mock，全量测试不得真实出站。
+`scripts/plugin_coverage.py` 已经运行 A 档插件测试；同一插件的局部 pytest 可按风险省略，但
+不能替代 `tests/ci`、非 A 档插件测试或需要全量回归的 `tests/run.py`，发版前仍保留
+`tests/run.py -q` 作为全量回归闭环。
+个人插件仓的 A 档覆盖率由 `plugin_quality.json` 显式声明；新增插件只先进入最低测试目录门禁，
+不自动进入 A 档覆盖率门禁。
 任何失败都要修复或明确报告，不能带失败进入 PR。
 
 ## 5. 提交前确认
