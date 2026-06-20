@@ -51,17 +51,30 @@ git checkout -b claude/<type>/<topic> <base>
 
 ## 3. 测试环境
 
-插件单测必须显式定位主程序源码，同时清理真实 `CONFIG_DIR`：
+插件单测必须显式定位主程序源码，同时清理真实 `CONFIG_DIR`。按改动面选择最小可信闭环：
 
 ```bash
 env -u CONFIG_DIR MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot \
   <workspace>/.venv-test/bin/python -m pytest tests/<v1|v2>/<plugin_id> -q
+env -u CONFIG_DIR MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot \
+  <workspace>/.venv-test/bin/python scripts/plugin_coverage.py
 env -u CONFIG_DIR MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot \
   <workspace>/.venv-test/bin/python tests/run.py
 ```
 
 `MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot` 只用于定位后端源码，可以保留在本地
 Docker-style env-file 中；`CONFIG_DIR` 不得从运行态环境泄漏进单测。外部服务必须 mock。
+`scripts/plugin_coverage.py` 会运行 `plugin_quality.json` 中 A 档插件的测试并检查覆盖率；它可替代
+这些插件的局部 pytest 重跑，但不能替代 `tests/ci`、非 A 档插件测试或需要全量回归的
+`tests/run.py`。
+
+个人插件仓的 A 档覆盖率由 `plugin_quality.json` 显式声明；新增插件不会自动进入 A 档。
+PR 新增 `plugins/` 或 `plugins.v2/` 插件目录时，至少要提交对应
+`tests/<v1|v2>/<plugin_id>/test_*.py`，并本地运行：
+
+```bash
+python scripts/check_new_plugin_tests.py --base-ref <base>
+```
 
 基础检查按影响面选择：
 

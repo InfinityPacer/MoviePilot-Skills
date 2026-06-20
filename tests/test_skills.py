@@ -85,6 +85,13 @@ def test_plugin_development_skill_handles_personal_and_official_repositories() -
     assert "upstream/main" in skill
     assert "MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot" in skill
     assert "env -u CONFIG_DIR" in skill
+    assert "scripts/plugin_coverage.py" in skill
+    assert "scripts/check_new_plugin_tests.py --base-ref <base>" in skill
+    assert "plugin_quality.json" in skill
+    assert "tests/<v1|v2>/<plugin_id>/test_*.py" in skill
+    assert "A 档覆盖率由 `plugin_quality.json` 显式声明" in skill
+    assert "新增插件不会自动进入 A 档" in skill
+    assert "不能替代 `tests/ci`、非 A 档插件测试或需要全量回归的" in skill
     assert "PLUGIN_LOCAL_REPO_PATHS" in skill
     assert "moviepilot-plugin-release" in skill
     assert "moviepilot-official-plugin-pr" in skill
@@ -154,6 +161,13 @@ def test_plugin_skill_keeps_release_and_auto_merge_closure() -> None:
 
     assert "InfinityPacer/MoviePilot-Plugins" in skill
     assert "env -u CONFIG_DIR" in skill
+    assert "scripts/plugin_coverage.py" in skill
+    assert "scripts/check_new_plugin_tests.py --base-ref origin/main" in skill
+    assert "plugin_quality.json" in skill
+    assert "不能替代 `tests/ci`、非 A 档插件测试或需要全量回归的" in skill
+    assert "发版前仍保留" in skill
+    assert "新增插件只先进入最低测试目录门禁" in skill
+    assert "不自动进入 A 档覆盖率门禁" in skill
     assert "Plugin release gate" in skill
     assert "--auto --squash" in skill
     assert "--delete-branch" not in skill
