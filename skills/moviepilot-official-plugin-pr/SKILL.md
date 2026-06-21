@@ -37,19 +37,59 @@ git fetch upstream main
 
 ## 2. 验证改动
 
-插件测试必须显式指定后端，并清理真实 `CONFIG_DIR`：
+插件测试通过 `<workspace>/app.env` 注入 `MOVIEPILOT_BACKEND_PATH` 等运行所需变量，同时清理真实
+`CONFIG_DIR`。按场景选择命令：
+
+| 场景 | 命令 |
+| --- | --- |
+| 局部插件测试：改动集中在单个插件，且需要快速复现或回归该插件行为 | `pytest tests/<v1\|v2>/<plugin_id> -q` |
+| 全量回归：准备提交官方仓 PR、跨插件共享脚手架变更、测试基础设施变更、或局部结果不足以覆盖风险 | `tests/run.py` |
+| 新增插件目录：PR 新增 `plugins/` 或 `plugins.v2/` 插件目录 | 若仓库存在脚本，运行 `scripts/check_new_plugin_tests.py --base-ref upstream/main`；否则确认对应 `tests/<v1\|v2>/<plugin_id>/test_*.py` 已存在并运行局部/全量测试 |
+| 基础文件检查：索引、metadata、版本、JSON、编译或空白敏感改动 | 版本门禁、`json.tool`、`compileall`、`git diff --check` |
+
+常用命令：
 
 ```bash
-env -u CONFIG_DIR MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot \
-  <workspace>/.venv-test/bin/python -m pytest tests/<v1|v2>/<plugin_id> -q
-env -u CONFIG_DIR MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot \
-  <workspace>/.venv-test/bin/python tests/run.py
+WORKSPACE="${WORKSPACE:?set workspace root}"
+PLUGIN_KIND=v2
+PLUGIN_ID="${PLUGIN_ID:?set plugin id}"
+TEST_TARGET="tests/${PLUGIN_KIND}/${PLUGIN_ID}"
+PLUGIN_DIR="plugins.${PLUGIN_KIND}/${PLUGIN_ID}"
+if [ "${PLUGIN_KIND}" = "v1" ]; then
+  PLUGIN_DIR="plugins/${PLUGIN_ID}"
+fi
+```
+
+```bash
+(
+  set -a
+  . "${WORKSPACE}/app.env"
+  set +a
+  env -u CONFIG_DIR \
+    "${WORKSPACE}/.venv-test/bin/python" -m pytest "${TEST_TARGET}" -q
+)
+(
+  set -a
+  . "${WORKSPACE}/app.env"
+  set +a
+  env -u CONFIG_DIR \
+    "${WORKSPACE}/.venv-test/bin/python" tests/run.py
+)
 python .github/scripts/check_plugin_versions.py package.json package.v2.json
 python -m json.tool package.json >/dev/null
 python -m json.tool package.v2.json >/dev/null
+python -m compileall -q "${PLUGIN_DIR}"
 git diff --check
 ```
 
+仓库存在新增插件目录门禁脚本时运行：
+
+```bash
+python scripts/check_new_plugin_tests.py --base-ref upstream/main
+```
+
+`<workspace>/app.env` 是本机命令 env-file；不得读取、打印、提交或写进公开正文，不要把 env-file 内容拼进命令参数。
+若仓库不存在某个脚本，记录缺失边界并使用同场景的测试目录检查、局部测试或全量测试兜底。
 若仓库存在 `Plugin release gate` 或同等 PR 检查，本地必须先跑对应脚本。外部服务必须 mock；
 不能用个人插件仓 Release 验证替代官方仓 PR 验证。
 
@@ -68,15 +108,20 @@ commit、push 前向维护者展示：
 
 ## 4. Push 与创建 PR
 
-将协作分支推到 fork 的 `origin`。使用真实换行的 Markdown 文件创建中文 PR：
+将协作分支推到 fork 的 `origin`。维护者确认 push 后，先推送当前已核对分支，再使用真实换行的
+Markdown 文件创建中文 PR：
 
 ```bash
+BRANCH="$(git branch --show-current)"
+PR_TITLE="fix(plugin): update official plugin"
+BODY_FILE="/tmp/moviepilot-official-plugin-pr.md"
+git push -u origin "${BRANCH}"
 gh pr create \
   --repo jxxghp/MoviePilot-Plugins \
   --base main \
-  --head InfinityPacer:<branch> \
-  --title "<Conventional Commit 风格标题>" \
-  --body-file <body-file>
+  --head "InfinityPacer:${BRANCH}" \
+  --title "${PR_TITLE}" \
+  --body-file "${BODY_FILE}"
 ```
 
 正文包括变更说明、影响路径、验证结果、关联 issue 或联动 PR、实际协作来源。正文只能使用仓库
@@ -92,15 +137,14 @@ Issue 关联按以下规则写入正文：
 
 ## 5. 回读与跟踪
 
-创建或更新 PR 后回读：
+创建或更新 PR 后回读。回读 PR 时确认：
 
 ```bash
-gh pr view <number> \
+PR_NUMBER=123
+gh pr view "${PR_NUMBER}" \
   --repo jxxghp/MoviePilot-Plugins \
   --json url,title,body,baseRefName,headRefName,headRefOid,state,mergeStateStatus,statusCheckRollup,reviews
 ```
-
-确认：
 
 1. base 为 `main`，head 为 `InfinityPacer:<branch>`；
 2. 正文真实分段且没有隐私信息；
@@ -110,8 +154,33 @@ gh pr view <number> \
 6. 后续 push 后 head SHA 与 PR 一致。
 
 不得启用 Auto-merge，不得代替上游维护者合并，不得运行个人仓自动合并或发布回查步骤。
-用户只要求提交 PR 时，PR 创建并回读后即可交付；若用户要求跟进 CI/review，则继续到
-对应结果明确为止。
+用户只要求提交 PR 时，默认交付终态是 PR 创建并回读确认；若用户要求跟进 CI/review/合并，
+或上游已实际合并，则继续到对应结果明确为止。
+
+## 6. 回复来源 Issue
+
+若改动来源于 issue，PR 创建后回复 issue：
+
+- 明确写“已提交 PR”，附 PR URL，并简述改动和验证结果；
+- PR 尚未合并时不得写“已完成”“已修复”或承诺已进入正式版本；
+- issue 与 PR 跨仓时，同时写明目标仓库，避免只贴短编号造成歧义。
+
+默认交付终态是 PR 已创建并回读确认；只有用户要求跟进或 PR 已实际合并时，才回写最终结果。
+
+使用真实换行的临时 Markdown 文件发布，并回读 issue 最后一条评论：
+
+```bash
+ISSUE_NUMBER=123
+ISSUE_REPO="jxxghp/MoviePilot-Plugins"
+BODY_FILE="/tmp/moviepilot-official-plugin-issue-comment.md"
+gh issue comment "${ISSUE_NUMBER}" \
+  --repo "${ISSUE_REPO}" \
+  --body-file "${BODY_FILE}"
+```
+
+使用 `Fixes #<number>` 的同仓 issue 由合并自动关闭；使用 `Refs #<number>` 或完整 URL
+关联时不主动关闭，除非维护者明确要求。每次发布评论后都要回读 issue，确认 Markdown、
+链接和公开信息无误。
 
 ## 常见错误
 

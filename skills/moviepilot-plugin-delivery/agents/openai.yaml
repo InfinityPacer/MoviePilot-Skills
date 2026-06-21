@@ -1,0 +1,4 @@
+interface:
+  display_name: "MoviePilot 插件交付"
+  short_description: "处理个人插件仓 PR-only、发版、自动合并和必要回查"
+  default_prompt: "Use $moviepilot-plugin-delivery to deliver a personal MoviePilot plugin PR or release through the guarded workflow."

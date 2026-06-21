@@ -42,17 +42,33 @@ git fetch upstream v2
 passkey、token、本地路径或插件市场配置。
 
 不得读取 env-file 内容，不得打印、提交、复制该 env-file 内容到 PR、issue、review 回复或日志摘录；公开内容只写
-`<workspace>/app.env` 这类占位路径。
+`<workspace>/app.env` 这类占位路径。不要把 env-file 内容拼进命令参数。
 
-运行态 env-file 与单测隔离环境分开。测试不得继承真实 `CONFIG_DIR`；无论 shell、IDE 或其他
-运行态入口是否注入过环境变量，测试命令一律显式清理。
+需要在命令中显式加载 env-file 时，用子 shell 限定作用域；测试命令一律清理真实
+`CONFIG_DIR`：
+
+```bash
+WORKSPACE="${WORKSPACE:?set workspace root}"
+(
+  set -a
+  . "${WORKSPACE}/app.env"
+  set +a
+  env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" -m pytest tests
+)
+```
 
 ## 3. 后端开发
 
 在 `MoviePilot/` 运行服务时使用工作区运行解释器：
 
 ```bash
-<workspace>/.venv/bin/python -m app.main
+WORKSPACE="${WORKSPACE:?set workspace root}"
+(
+  set -a
+  . "${WORKSPACE}/app.env"
+  set +a
+  "${WORKSPACE}/.venv/bin/python" -m app.main
+)
 ```
 
 若用户正在用 PyCharm debugger 或终端运行后端，不要抢占重启；通过 API、日志、浏览器网络请求
@@ -61,13 +77,25 @@ passkey、token、本地路径或插件市场配置。
 后端测试使用单测环境：
 
 ```bash
-env -u CONFIG_DIR <workspace>/.venv-test/bin/python -m pytest tests/<target> -q
-env -u CONFIG_DIR <workspace>/.venv-test/bin/python tests/run.py
-pylint app
-git diff --check
+WORKSPACE="${WORKSPACE:?set workspace root}"
+TEST_TARGET=tests
+(
+  set -a
+  . "${WORKSPACE}/app.env"
+  set +a
+  env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" -m pytest "${TEST_TARGET}" -q
+)
+(
+  set -a
+  . "${WORKSPACE}/app.env"
+  set +a
+  env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" tests/run.py
+)
 ```
 
 外部服务必须 mock；不要把局部测试冒充全量测试。
+最终全量门禁由 `moviepilot-upstream-pr` 执行；同一 HEAD 已在开发阶段跑过的全量结果可在
+PR skill 中复用，后续有任何改动则重新跑。
 
 ## 4. 前端开发
 
@@ -75,10 +103,6 @@ git diff --check
 
 ```bash
 yarn dev
-yarn typecheck
-yarn lint
-yarn build
-git diff --check
 ```
 
 涉及 UI、权限、路由、接口契约或用户流程时，复用或启动本地前后端，通过浏览器确认接口、控制台、
@@ -90,7 +114,7 @@ git diff --check
 
 - 仓库、分支与基线；
 - 改动范围；
-- 运行过的测试、lint、浏览器验证；
+- 运行过的测试或浏览器验证；
 - 未验证项和原因类别；
 - `git diff --stat`。
 

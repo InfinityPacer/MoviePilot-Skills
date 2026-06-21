@@ -42,11 +42,18 @@ git fetch upstream v2
 在仓库根运行：
 
 ```bash
-env -u CONFIG_DIR <workspace>/.venv-test/bin/python tests/run.py
+WORKSPACE="${WORKSPACE:?set workspace root}"
+(
+  set -a
+  . "${WORKSPACE}/app.env"
+  set +a
+  env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" tests/run.py
+)
 pylint app
 git diff --check
 ```
 
+`<workspace>/app.env` 是本机命令 env-file；不得读取、打印、提交或写进公开正文，不要把 env-file 内容拼进命令参数。
 `CONFIG_DIR` 不得从本地运行态环境泄漏进单测；`tests/run.py` 必须零真实出站。若 `pylint app`
 存在与本次无关的基线失败，记录完整边界；不能把未运行写成通过，也不能用局部测试冒充全量测试。
 
@@ -89,15 +96,21 @@ commit、push 前向维护者展示：
 
 ## 4. Push 与创建 PR
 
-将协作分支推到 fork 的 `origin`。使用真实换行的 Markdown 文件创建中文 PR：
+将协作分支推到 fork 的 `origin`。维护者确认 push 后，先推送当前已核对分支，再使用真实换行的
+Markdown 文件创建中文 PR：
 
 ```bash
+TARGET_REPO="jxxghp/MoviePilot"
+BRANCH="$(git branch --show-current)"
+PR_TITLE="fix: update moviepilot"
+BODY_FILE="/tmp/moviepilot-upstream-pr.md"
+git push -u origin "${BRANCH}"
 gh pr create \
-  --repo jxxghp/<MoviePilot-or-MoviePilot-Frontend> \
+  --repo "${TARGET_REPO}" \
   --base v2 \
-  --head InfinityPacer:<branch> \
-  --title "<Conventional Commit 风格标题>" \
-  --body-file <body-file>
+  --head "InfinityPacer:${BRANCH}" \
+  --title "${PR_TITLE}" \
+  --body-file "${BODY_FILE}"
 ```
 
 正文包括：
@@ -129,8 +142,10 @@ Issue 关联按以下规则写入正文：
 创建或更新 PR 后回读：
 
 ```bash
-gh pr view <number> \
-  --repo jxxghp/<repo> \
+PR_NUMBER=123
+TARGET_REPO="jxxghp/MoviePilot"
+gh pr view "${PR_NUMBER}" \
+  --repo "${TARGET_REPO}" \
   --json url,title,body,baseRefName,headRefName,headRefOid,state,mergeStateStatus,statusCheckRollup,reviews
 ```
 
@@ -143,8 +158,8 @@ gh pr view <number> \
 5. review 或 requested changes 已如实报告；
 6. 后续 push 后 head SHA 与 PR 一致。
 
-不得启用 Auto-merge，不得代替上游维护者合并。用户只要求提交 PR 时，PR 创建并回读后
-即可交付；若用户要求跟进 CI/review，则继续到对应结果明确为止。
+不得启用 Auto-merge，不得代替上游维护者合并。用户只要求提交 PR 时，默认交付终态是
+PR 创建并回读确认；若用户要求跟进 CI/review/合并，或上游已实际合并，则继续到对应结果明确为止。
 
 ## 6. 回复来源 Issue
 
@@ -154,14 +169,18 @@ gh pr view <number> \
 - PR 尚未合并时不得写“已完成”“已修复”或承诺已进入正式版本；
 - issue 与 PR 跨仓时，同时写明目标仓库，避免只贴短编号造成歧义。
 
-合并或发布后再回写最终结果；本流程的终态是上游 PR 已合并。
+默认交付终态是 PR 已创建并回读确认；只有用户要求跟进、PR 已实际合并或发布状态已经明确时，
+才回写最终结果。
 
 使用真实换行的临时 Markdown 文件发布，并回读 issue 最后一条评论：
 
 ```bash
-gh issue comment <issue-number> \
-  --repo <issue-owner>/<issue-repo> \
-  --body-file <body-file>
+ISSUE_NUMBER=123
+ISSUE_REPO="jxxghp/MoviePilot"
+BODY_FILE="/tmp/moviepilot-upstream-issue-comment.md"
+gh issue comment "${ISSUE_NUMBER}" \
+  --repo "${ISSUE_REPO}" \
+  --body-file "${BODY_FILE}"
 ```
 
 PR 合并后，若任务要求跟进结果，再回复合并状态与 PR/merge commit 链接。使用
