@@ -49,12 +49,12 @@ WORKSPACE="${WORKSPACE:?set workspace root}"
   set +a
   env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" tests/run.py
 )
-pylint app
+env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" -m pylint app
 git diff --check
 ```
 
 `<workspace>/app.env` 是本机命令 env-file；不得读取、打印、提交或写进公开正文，不要把 env-file 内容拼进命令参数。
-`CONFIG_DIR` 不得从本地运行态环境泄漏进单测；`tests/run.py` 必须零真实出站。若 `pylint app`
+`CONFIG_DIR` 不得从本地运行态环境泄漏进单测；`tests/run.py` 必须零真实出站。若 `python -m pylint app`
 存在与本次无关的基线失败，记录完整边界；不能把未运行写成通过，也不能用局部测试冒充全量测试。
 
 ### 前端 `MoviePilot-Frontend`

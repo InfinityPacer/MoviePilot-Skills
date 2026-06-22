@@ -179,6 +179,14 @@ def test_workspace_env_file_is_loaded_safely_and_config_dir_is_cleared() -> None
         assert "MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot" not in skill
 
 
+def test_upstream_backend_pylint_uses_workspace_test_venv() -> None:
+    """后端 PR 门禁的 Pylint 必须使用工作区测试环境，避免依赖外部 PATH。"""
+    skill = _read_skill("moviepilot-upstream-pr")
+
+    assert 'env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" -m pylint app' in skill
+    assert "\npylint app\n" not in skill
+
+
 def test_plugin_test_commands_map_to_clear_scenarios() -> None:
     """插件测试命令按场景选择，并显式覆盖 base-ref、A 档覆盖率和 v1/v2 编译路径。"""
     for name in ("moviepilot-plugin-development", "moviepilot-plugin-delivery", "moviepilot-official-plugin-pr"):
