@@ -32,8 +32,14 @@ git fetch upstream v2
 - Codex：`codex/<type>/<topic>`
 - Claude Code：`claude/<type>/<topic>`
 
-已有工作分支必须先核对 merge-base、`upstream/v2..HEAD` 和用户改动；不要 reset、stash 或
-覆盖用户已有改动。
+开始任务前先判断工作区是否干净。若 `git status --short` 有未提交改动，先停止并询问用户
+如何处理这些改动；不要擅自 reset、stash、覆盖、带入新任务或代替用户判断归属。
+
+工作区干净后，根据用户目标和业务语义创建或选择分支。当前已在工作分支时，先判断分支是否
+基于 `upstream/v2`、提交范围只包含本次任务，且分支名能表达业务主题；满足这些条件就继续使用
+当前分支。若当前在 `v2`、`main`、`master`，分支名与业务语义不一致，或提交范围不干净，应从
+最新 `upstream/v2` 创建新的业务分支。已有工作分支必须先核对 merge-base、`upstream/v2..HEAD`
+和用户改动。
 
 ## 2. 运行态环境
 

@@ -36,7 +36,12 @@ git log --oneline HEAD..origin/main
 `origin/main..HEAD` 包含旧版本发布、无关修复、其他插件改动等非本次交付提交，停止在原分支
 继续；从 `origin/main` 创建干净分支，仅 cherry-pick 或重做本次必要改动。
 
-PR-only 分支按任务类型命名，例如：
+分支名必须先跟随本次交付的业务主题，而不是交付动作。当前已在工作分支时，先判断分支是否
+干净、基于最新 `origin/main`、提交范围只包含本次改动，且分支名能表达业务主题；满足这些条件
+就继续使用当前分支，不要仅因为进入发版闭环而改名。只有当前在 `main`/`master`、分支主题与
+本次交付业务不一致、或提交范围不干净时，才从 `origin/main` 新建业务分支。
+
+新建分支按任务类型和业务主题命名，例如：
 
 ```bash
 TASK_TYPE=fix
@@ -45,7 +50,10 @@ BRANCH="codex/${TASK_TYPE}/${PLUGIN_ID}-topic"
 git checkout -b "${BRANCH}" origin/main
 ```
 
-发版分支只在真实版本升级或 GitHub Release 闭环时使用 `release` 前缀：
+Claude Code 对应使用 `claude/${TASK_TYPE}/${PLUGIN_ID}-topic`。
+
+只有发布流程本身就是业务主题时，才使用 `release` 前缀；不要把普通 bugfix、docs、test 或
+CI 修复分支仅因最后要发版而改成 `release`：
 
 ```bash
 PLUGIN_ID=subscribeassistantenhanced

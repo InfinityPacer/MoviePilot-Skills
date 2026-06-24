@@ -106,6 +106,21 @@ def test_development_skills_stop_before_commit_push_or_pr() -> None:
     assert "moviepilot-official-plugin-pr" in plugin
 
 
+def test_development_skills_require_clean_workspace_and_business_branches() -> None:
+    """开发 skill 开始任务前必须先确认干净工作区，并按业务语义拉分支。"""
+    for name in ("moviepilot-main-development", "moviepilot-plugin-development"):
+        skill = _read_skill(name)
+
+        assert "开始任务前先判断工作区是否干净" in skill
+        assert "若 `git status --short` 有未提交改动" in skill
+        assert "先停止并询问用户" in skill
+        assert "不要擅自 reset、stash、覆盖、带入新任务或代替用户判断归属" in skill
+        assert "工作区干净后，根据用户目标和业务语义创建或选择分支" in skill
+        assert "分支名与业务语义不一致" in skill
+        assert "创建" in skill
+        assert "新的业务分支" in skill
+
+
 def test_personal_plugin_delivery_has_two_terminal_paths() -> None:
     """个人插件交付同时覆盖 PR-only 与发版，且两条路径终止条件不同。"""
     skill = _read_skill("moviepilot-plugin-delivery")
@@ -121,6 +136,22 @@ def test_personal_plugin_delivery_has_two_terminal_paths() -> None:
     assert "--match-head-commit" in skill
     assert "--delete-branch" not in skill
     assert "不得使用 `--admin`" in skill
+
+
+def test_personal_plugin_delivery_branch_names_follow_business_semantics() -> None:
+    """插件交付分支名必须表达业务主题，不因发版闭环强制改成 release。"""
+    skill = _read_skill("moviepilot-plugin-delivery")
+
+    assert "分支名必须先跟随本次交付的业务主题" in skill
+    assert "不要仅因为进入发版闭环而改名" in skill
+    assert "只有当前在 `main`/`master`、分支主题与" in skill
+    assert "本次交付业务不一致、或提交范围不干净时" in skill
+    assert "只有发布流程本身就是业务主题时，才使用 `release` 前缀" in skill
+    assert "不要把普通 bugfix、docs、test 或" in skill
+    assert "CI 修复分支仅因最后要发版而改成 `release`" in skill
+    assert 'BRANCH="codex/${TASK_TYPE}/${PLUGIN_ID}-topic"' in skill
+    assert "claude/${TASK_TYPE}/${PLUGIN_ID}-topic" in skill
+    assert 'BRANCH="codex/release/${PLUGIN_ID}-${VERSION}"' in skill
 
 
 def test_delivery_skills_cover_commit_push_pr_tracking_and_issue_reply() -> None:
