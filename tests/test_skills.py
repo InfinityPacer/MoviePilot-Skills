@@ -61,6 +61,31 @@ def test_skill_set_and_metadata_match_current_public_workflows() -> None:
         assert f"${name}" in metadata.read_text(encoding="utf-8")
 
 
+def test_no_stale_plugin_release_skill_references() -> None:
+    """MoviePilot skill source must use the current plugin delivery skill name."""
+    # Keep the stale name split so repository-wide stale-name scans stay signal-bearing.
+    stale_skill = "moviepilot-plugin-" "release"
+    current_skill = "moviepilot-plugin-delivery"
+    checked_files = [
+        REPO_ROOT / "README.md",
+        *sorted(SKILLS_ROOT.glob("*/SKILL.md")),
+        *sorted(SKILLS_ROOT.glob("*/agents/openai.yaml")),
+    ]
+
+    for path in checked_files:
+        text = path.read_text(encoding="utf-8")
+        assert stale_skill not in text, path
+
+    routing_files = {
+        REPO_ROOT / "README.md",
+        SKILLS_ROOT / "moviepilot-delivery" / "SKILL.md",
+        SKILLS_ROOT / "moviepilot-plugin-development" / "SKILL.md",
+        SKILLS_ROOT / "moviepilot-plugin-delivery" / "SKILL.md",
+    }
+    for path in routing_files:
+        assert current_skill in path.read_text(encoding="utf-8"), path
+
+
 def test_router_skills_only_route_and_do_not_execute_delivery_work() -> None:
     """路由 skill 只做分流，不复制提交、PR、issue 或验证命令。"""
     delivery = _read_skill("moviepilot-delivery")
