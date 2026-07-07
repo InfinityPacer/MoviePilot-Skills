@@ -128,6 +128,12 @@ gh pr create \
 相对路径、可复现命令或结果摘要，不得包含本机绝对路径、账号目录、临时文件、凭据、Cookie、
 token、私有日志或本地端口映射。
 
+协作来源固定写在末尾：
+
+- 仅 Codex：`本 PR 为 Codex 协作提交`
+- 仅 Claude Code：`本 PR 为 Claude Code 协作提交`
+- 两者实际参与：`本 PR 为 Claude Code & Codex 协作提交`
+
 Issue 关联按以下规则写入正文：
 
 - 同仓 issue，修复已确认且 PR 合并后应自动关闭：`Fixes #<number>`；

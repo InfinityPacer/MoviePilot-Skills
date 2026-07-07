@@ -238,6 +238,12 @@ gh pr create \
 PR 必须包含变更说明、影响路径、验证结果、交付路径和协作来源。PR-only 正文必须明确不包含
 版本升级、tag 或 GitHub Release；发版路径正文必须列出版本事实同步位置。
 
+协作来源固定写在末尾：
+
+- 仅 Codex：`本 PR 为 Codex 协作提交`
+- 仅 Claude Code：`本 PR 为 Claude Code 协作提交`
+- 两者实际参与：`本 PR 为 Claude Code & Codex 协作提交`
+
 Issue 关联按以下规则写入正文：
 
 - 同仓 issue，修复已确认且 PR 合并后应自动关闭：`Fixes #<number>`；
