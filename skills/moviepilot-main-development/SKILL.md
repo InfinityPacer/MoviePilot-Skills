@@ -9,6 +9,8 @@ description: Use when developing, debugging, testing, or locally running MoviePi
 
 只处理 `MoviePilot` 后端与 `MoviePilot-Frontend` 前端本地开发。开发完成后若要提交上游，
 转 `moviepilot-upstream-pr`；本 skill 不 commit、不 push、不创建 PR。
+普通开发默认在当前仓库 checkout 中创建或切换业务分支；不要因保持基线干净、执行实现计划或
+准备 PR 而自动创建 Git linked worktree。只有用户明确要求隔离工作区时才创建 worktree。
 
 ## 1. 确认仓库与分支
 

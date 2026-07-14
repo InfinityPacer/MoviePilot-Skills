@@ -10,6 +10,8 @@ description: Use when developing, debugging, testing, hot-reloading, or preparin
 只处理插件仓本地开发、调试和必要验证。个人插件仓提交 PR、PR-only 或发版转
 `moviepilot-plugin-delivery`；官方插件仓提交上游转 `moviepilot-official-plugin-pr`。
 本 skill 不 commit、不 push、不创建 PR、不发版。
+普通开发默认在当前仓库 checkout 中创建或切换业务分支；不要因保持基线干净、执行实现计划或
+准备 PR 而自动创建 Git linked worktree。只有用户明确要求隔离工作区时才创建 worktree。
 
 ## 1. 确认仓库类型
 
