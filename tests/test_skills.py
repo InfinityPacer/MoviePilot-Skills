@@ -196,10 +196,6 @@ def test_delivery_skills_cover_commit_push_pr_tracking_and_issue_reply() -> None
         assert "gh issue comment" in skill
         assert "回读 issue" in skill
         assert "不得写“已完成”" in skill
-        assert "协作来源固定写在末尾" in skill
-        assert "本 PR 为 Codex 协作提交" in skill
-        assert "本 PR 为 Claude Code 协作提交" in skill
-        assert "本 PR 为 Claude Code & Codex 协作提交" in skill
 
 
 def test_official_and_upstream_prs_do_not_auto_merge() -> None:

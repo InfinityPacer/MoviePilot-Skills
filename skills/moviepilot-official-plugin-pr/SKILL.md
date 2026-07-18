@@ -124,15 +124,9 @@ gh pr create \
   --body-file "${BODY_FILE}"
 ```
 
-正文包括变更说明、影响路径、验证结果、关联 issue 或联动 PR、实际协作来源。正文只能使用仓库
+正文包括变更说明、影响路径、验证结果、关联 issue 或联动 PR。正文只能使用仓库
 相对路径、可复现命令或结果摘要，不得包含本机绝对路径、账号目录、临时文件、凭据、Cookie、
 token、私有日志或本地端口映射。
-
-协作来源固定写在末尾：
-
-- 仅 Codex：`本 PR 为 Codex 协作提交`
-- 仅 Claude Code：`本 PR 为 Claude Code 协作提交`
-- 两者实际参与：`本 PR 为 Claude Code & Codex 协作提交`
 
 Issue 关联按以下规则写入正文：
 

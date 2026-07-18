@@ -118,8 +118,7 @@ gh pr create \
 - 变更说明；
 - 影响路径；
 - 复现或验证结果；
-- 关联 issue 或联动 PR；
-- 实际协作来源。
+- 关联 issue 或联动 PR。
 
 Issue 关联按以下规则写入正文：
 
@@ -127,12 +126,6 @@ Issue 关联按以下规则写入正文：
 - 同仓 issue，仅作背景、讨论或不应自动关闭：`Refs #<number>`；
 - issue 与 PR 不在同一仓库：使用 issue 完整 URL，不依赖短编号；
 - 无法确认是否应自动关闭时，默认使用 `Refs`，不得擅自关闭 issue。
-
-协作来源固定写在末尾：
-
-- 仅 Codex：`本 PR 为 Codex 协作提交`
-- 仅 Claude Code：`本 PR 为 Claude Code 协作提交`
-- 两者实际参与：`本 PR 为 Claude Code & Codex 协作提交`
 
 正文只能使用仓库相对路径、可复现命令或结果摘要，不得包含本机绝对路径、账号目录、
 临时文件、凭据、Cookie、token、私有日志或本地端口映射。
