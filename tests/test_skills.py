@@ -198,6 +198,41 @@ def test_delivery_skills_cover_commit_push_pr_tracking_and_issue_reply() -> None
         assert "不得写“已完成”" in skill
 
 
+def test_delivery_skills_require_maintainer_facing_pr_context() -> None:
+    """三个交付 skill 的 PR 正文都必须解释问题、方案理由、影响风险和验证边界。"""
+    required_sections = (
+        "## 问题与背景",
+        "## 原因分析",
+        "## 解决方案",
+        "## 影响与风险",
+        "## 验证",
+        "## 关联",
+    )
+
+    contracts = []
+    for name in DELIVERY_SKILLS:
+        skill = _read_skill(name)
+
+        positions = [skill.index(section) for section in required_sections]
+        assert positions == sorted(positions), name
+        assert "不能只列文件或实现动作" in skill
+        assert "为什么选择该方案" in skill
+        assert "不把推测写成事实" in skill
+        assert "兼容性、配置/数据迁移要求和剩余风险" in skill
+        assert "未验证项及原因类别" in skill
+        assert "## 背景与目标" in skill
+        assert "不能退化为 diff 摘要或本地执行流水账" in skill
+        contract = re.search(
+            r"PR 正文必须为维护者提供.*?不能退化为 diff 摘要或本地执行流水账。",
+            skill,
+            flags=re.DOTALL,
+        )
+        assert contract, name
+        contracts.append(contract.group(0))
+
+    assert len(set(contracts)) == 1
+
+
 def test_official_and_upstream_prs_do_not_auto_merge() -> None:
     """向 jxxghp 提交的 PR 只跟踪状态，不代替上游维护者合并。"""
     for name in ("moviepilot-official-plugin-pr", "moviepilot-upstream-pr"):
