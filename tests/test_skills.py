@@ -251,7 +251,7 @@ def test_official_and_upstream_prs_do_not_auto_merge() -> None:
     upstream = _read_skill("moviepilot-upstream-pr")
     assert "jxxghp/MoviePilot" in upstream
     assert "jxxghp/MoviePilot-Frontend" in upstream
-    assert "--base v2" in upstream
+    assert "--base v3" in upstream
 
 
 def test_workspace_env_file_is_loaded_safely_and_config_dir_is_cleared() -> None:

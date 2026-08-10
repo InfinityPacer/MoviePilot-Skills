@@ -19,17 +19,17 @@ description: Use when developing, debugging, testing, or locally running MoviePi
 ```bash
 git status --short --branch
 git remote -v
-git fetch upstream v2
+git fetch upstream v3
 ```
 
 只接受以下开发基线：
 
 | 本地仓库 | 开发基线 |
 | --- | --- |
-| `MoviePilot` | `upstream/v2` |
-| `MoviePilot-Frontend` | `upstream/v2` |
+| `MoviePilot` | `upstream/v3` |
+| `MoviePilot-Frontend` | `upstream/v3` |
 
-若当前是 `v2`、`main` 或 `master`，从最新 `upstream/v2` 创建协作分支：
+若当前是 `v3`、`main` 或 `master`，从最新 `upstream/v3` 创建协作分支：
 
 - Codex：`codex/<type>/<topic>`
 - Claude Code：`claude/<type>/<topic>`
@@ -38,9 +38,9 @@ git fetch upstream v2
 如何处理这些改动；不要擅自 reset、stash、覆盖、带入新任务或代替用户判断归属。
 
 工作区干净后，根据用户目标和业务语义创建或选择分支。当前已在工作分支时，先判断分支是否
-基于 `upstream/v2`、提交范围只包含本次任务，且分支名能表达业务主题；满足这些条件就继续使用
-当前分支。若当前在 `v2`、`main`、`master`，分支名与业务语义不一致，或提交范围不干净，应从
-最新 `upstream/v2` 创建新的业务分支。已有工作分支必须先核对 merge-base、`upstream/v2..HEAD`
+基于 `upstream/v3`、提交范围只包含本次任务，且分支名能表达业务主题；满足这些条件就继续使用
+当前分支。若当前在 `v3`、`main`、`master`，分支名与业务语义不一致，或提交范围不干净，应从
+最新 `upstream/v3` 创建新的业务分支。已有工作分支必须先核对 merge-base、`upstream/v3..HEAD`
 和用户改动。
 
 ## 2. 运行态环境

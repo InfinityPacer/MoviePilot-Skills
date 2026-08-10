@@ -1,6 +1,6 @@
 ---
 name: moviepilot-upstream-pr
-description: Use when preparing, publishing, updating, or checking a pull request from the InfinityPacer MoviePilot or MoviePilot-Frontend fork to the jxxghp upstream v2 branch.
+description: Use when preparing, publishing, updating, or checking a pull request from the InfinityPacer MoviePilot or MoviePilot-Frontend fork to the jxxghp upstream v3 branch.
 ---
 
 # MoviePilot 上游 PR
@@ -8,7 +8,7 @@ description: Use when preparing, publishing, updating, or checking a pull reques
 ## 核心原则
 
 只处理 `MoviePilot` 后端与 `MoviePilot-Frontend` 前端 fork。工作分支推到
-`InfinityPacer/*`，PR 提交到对应 `jxxghp/*:v2`。上游维护者拥有最终合并权；不得启用
+`InfinityPacer/*`，PR 提交到对应 `jxxghp/*:v3`。上游维护者拥有最终合并权；不得启用
 Auto-merge、不得使用管理员权限合并。
 
 ## 1. 确认仓库与分支
@@ -18,17 +18,17 @@ Auto-merge、不得使用管理员权限合并。
 ```bash
 git status --short --branch
 git remote -v
-git fetch upstream v2
+git fetch upstream v3
 ```
 
 只接受以下映射：
 
 | 本地仓库 | fork push 目标 | upstream PR 目标 |
 | --- | --- | --- |
-| `MoviePilot` | `InfinityPacer/MoviePilot` | `jxxghp/MoviePilot:v2` |
-| `MoviePilot-Frontend` | `InfinityPacer/MoviePilot-Frontend` | `jxxghp/MoviePilot-Frontend:v2` |
+| `MoviePilot` | `InfinityPacer/MoviePilot` | `jxxghp/MoviePilot:v3` |
+| `MoviePilot-Frontend` | `InfinityPacer/MoviePilot-Frontend` | `jxxghp/MoviePilot-Frontend:v3` |
 
-若当前是 `v2`、`main` 或 `master`，从最新 `upstream/v2` 创建协作分支：
+若当前是 `v3`、`main` 或 `master`，从最新 `upstream/v3` 创建协作分支：
 
 - Codex：`codex/<type>/<topic>`
 - Claude Code：`claude/<type>/<topic>`
@@ -86,7 +86,7 @@ git diff --check
 commit、push 前向维护者展示：
 
 - 仓库和分支名；
-- `upstream/v2` 同步状态；
+- `upstream/v3` 同步状态；
 - 验证结果及未验证项；
 - `git diff --stat`；
 - 拟用的单行英文 Conventional Commit subject。
@@ -107,7 +107,7 @@ BODY_FILE="/tmp/moviepilot-upstream-pr.md"
 git push -u origin "${BRANCH}"
 gh pr create \
   --repo "${TARGET_REPO}" \
-  --base v2 \
+  --base v3 \
   --head "InfinityPacer:${BRANCH}" \
   --title "${PR_TITLE}" \
   --body-file "${BODY_FILE}"
@@ -153,7 +153,7 @@ gh pr view "${PR_NUMBER}" \
 
 确认：
 
-1. base 为 `v2`，head 为 `InfinityPacer:<branch>`；
+1. base 为 `v3`，head 为 `InfinityPacer:<branch>`；
 2. 正文真实分段，包含问题或目标、方案理由、影响与风险、验证结果，且没有隐私信息；
 3. 回读 PR 后确认 issue 编号、仓库和 `Fixes` / `Refs` 语义正确；
 4. CI 已出现，并区分等待、失败和成功；
@@ -194,7 +194,7 @@ PR 合并后，若任务要求跟进结果，再回复合并状态与 PR/merge c
 
 | 错误 | 处理 |
 | --- | --- |
-| 从陈旧本地 `v2` 建分支 | 先 fetch，并以 `upstream/v2` 为基线 |
+| 从陈旧本地 `v3` 建分支 | 先 fetch，并以 `upstream/v3` 为基线 |
 | 将分支推到 upstream | 只 push `origin`，PR head 使用 `InfinityPacer:<branch>` |
 | 前端只跑 typecheck | 同时跑 lint/build；UI 改动补真实浏览器验证 |
 | 后端局部测试代替全量 | push 前运行 `tests/run.py` |
