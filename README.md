@@ -10,7 +10,7 @@ MoviePilot 工作区的 Codex / Claude Code skill 事实源。先改本仓，通
 | `moviepilot-main-development` | `MoviePilot` 后端与 `MoviePilot-Frontend` 前端本地开发 |
 | `moviepilot-plugin-development` | 个人插件仓与官方插件 fork 的本地开发、测试和热加载调试 |
 | `moviepilot-delivery` | PR、发版、发布请求的仓库路由 |
-| `moviepilot-upstream-pr` | `InfinityPacer/MoviePilot*` fork 到 `jxxghp/*:v2` 的上游 PR |
+| `moviepilot-upstream-pr` | `InfinityPacer/MoviePilot*` fork 到 `jxxghp/*:v3` 的上游 PR |
 | `moviepilot-official-plugin-pr` | `MoviePilot-Plugins-Official` fork 到 `jxxghp/MoviePilot-Plugins:main` 的官方插件 PR |
 | `moviepilot-plugin-delivery` | 个人插件仓 PR-only、发版、Auto-merge 和必要回查 |
 
