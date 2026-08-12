@@ -93,9 +93,9 @@ python scripts/check_new_plugin_tests.py --base-ref upstream/main
 若仓库存在 `Plugin release gate` 或同等 PR 检查，本地必须先跑对应脚本。外部服务必须 mock；
 不能用个人插件仓 Release 验证替代官方仓 PR 验证。
 
-## 3. 提交前确认
+## 3. 提交与授权
 
-commit、push 前向维护者展示：
+commit、push 前核对：
 
 - 仓库和分支名；
 - `upstream/main` 同步状态；
@@ -103,17 +103,18 @@ commit、push 前向维护者展示：
 - `git diff --stat`；
 - 拟用的单行英文 Conventional Commit subject。
 
-取得明确确认后才能 commit 或 push。只确认 commit 时不得 push；不得 force push，除非维护者
-明确授权并已说明影响范围。
+本地 commit 服从当前 `dev-workflow`、已批准计划或本轮用户授权；已有授权时直接执行，不重复确认。
+push 和 PR 是独立的外部交付边界，只有当前指令或既有授权已覆盖时才能执行；只授权 commit 时
+不得 push。不得 force push，除非维护者明确授权并已说明影响范围。
 
 ## 4. Push 与创建 PR
 
-将协作分支推到 fork 的 `origin`。维护者确认 push 后，先推送当前已核对分支，再使用真实换行的
-Markdown 文件创建中文 PR：
+将协作分支推到 fork 的 `origin`。push/PR 已获授权后，先推送当前已核对分支，再使用真实换行的
+Markdown 文件创建 PR：
 
 ```bash
 BRANCH="$(git branch --show-current)"
-PR_TITLE="fix(plugin): update official plugin"
+PR_TITLE="fix(plugin): 修复官方插件行为"
 BODY_FILE="/tmp/moviepilot-official-plugin-pr.md"
 git push -u origin "${BRANCH}"
 gh pr create \
@@ -124,30 +125,14 @@ gh pr create \
   --body-file "${BODY_FILE}"
 ```
 
-PR 正文必须为维护者提供判断改动是否成立所需的上下文，不能只列文件或实现动作。除确实不适用的
-章节外，按以下顺序使用中文 Markdown 标题：
+PR 标题、正文和 issue 回复默认使用中文，commit subject 使用英文 Conventional Commit；目标仓库
+模板或维护者另有要求时从其要求。同时应用 `dev-workflow` 的通用 PR 沟通与隐私契约，本 skill
+不复制固定章节模板。正文深度随改动风险调整，标题必须描述主要行为或维护结果，不能用测试或
+实现手段掩盖生产行为变化，也不要重复自动生成的 PR 摘要。
 
-1. `## 问题与背景`：说明用户可感知的问题、预期与实际行为，或非缺陷类改动的维护目标；
-2. `## 原因分析`：说明已确认的直接原因、触发条件和边界；原因尚未完全确认时明确证据与未知项，
-   不把推测写成事实；
-3. `## 解决方案`：说明改了什么以及为什么选择该方案；存在有意义的替代方案或兼容取舍时简述
-   未采用原因；
-4. `## 影响与风险`：说明受影响路径、用户行为、兼容性、配置/数据迁移要求和剩余风险；经核实无
-   特殊迁移或兼容影响时也要明确写出结论；
-5. `## 验证`：列出可复现命令或结果摘要，并如实写明未验证项及原因类别；
-6. `## 关联`：列出 issue、联动 PR、合并顺序或兼容关系；没有关联项时可省略。
-
-纯文档、工作流或机械维护可以把“问题与背景”和“原因分析”合并为 `## 背景与目标`，但仍须说明
-为什么需要改、为什么采用当前方案、影响边界和验证结果，不能退化为 diff 摘要或本地执行流水账。
-正文只能使用仓库相对路径、可复现命令或结果摘要，不得包含本机绝对路径、账号目录、临时文件、
-凭据、Cookie、token、私有日志或本地端口映射。
-
-Issue 关联按以下规则写入正文：
-
-- 同仓 issue，修复已确认且 PR 合并后应自动关闭：`Fixes #<number>`；
-- 同仓 issue，仅作背景、讨论或不应自动关闭：`Refs #<number>`；
-- issue 与 PR 不在同一仓库：使用 issue 完整 URL，不依赖短编号；
-- 无法确认是否应自动关闭时，默认使用 `Refs`，不得擅自关闭 issue。
+MoviePilot 专项内容只补充官方插件 fork、`upstream/main`、插件门禁及不代替维护者合并的边界。
+Issue 仅在修复完整且合并后应自动关闭时使用 `Fixes`；部分处理或背景关联使用 `Refs`，跨仓使用
+完整 URL。
 
 ## 5. 回读与跟踪
 
@@ -161,7 +146,7 @@ gh pr view "${PR_NUMBER}" \
 ```
 
 1. base 为 `main`，head 为 `InfinityPacer:<branch>`；
-2. 正文真实分段，包含问题或目标、方案理由、影响与风险、验证结果，且没有隐私信息；
+2. 正文与改动规模匹配，维护者无需本地讨论即可理解主要问题、行为变化、必要边界和验证结果；
 3. issue 编号、仓库和 `Fixes` / `Refs` 语义正确；
 4. CI 或 `Plugin release gate` 已出现，并区分等待、失败和成功；
 5. review 或 requested changes 已如实报告；

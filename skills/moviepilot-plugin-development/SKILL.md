@@ -9,7 +9,7 @@ description: Use when developing, debugging, testing, hot-reloading, or preparin
 
 只处理插件仓本地开发、调试和必要验证。个人插件仓提交 PR、PR-only 或发版转
 `moviepilot-plugin-delivery`；官方插件仓提交上游转 `moviepilot-official-plugin-pr`。
-本 skill 不 commit、不 push、不创建 PR、不发版。
+本地 commit 服从当前 `dev-workflow`、已批准计划或用户授权；本 skill 不 push、不创建 PR、不发版。
 普通开发默认在当前仓库 checkout 中创建或切换业务分支；不要因保持基线干净、执行实现计划或
 准备 PR 而自动创建 Git linked worktree。只有用户明确要求隔离工作区时才创建 worktree。
 
@@ -46,8 +46,10 @@ git fetch upstream main
 
 ## 2. 分支策略
 
-开始任务前先判断工作区是否干净。若 `git status --short` 有未提交改动，先停止并询问用户
-如何处理这些改动；不要擅自 reset、stash、覆盖、带入新任务或代替用户判断归属。
+开始任务前先判断工作区状态和改动归属。若 `git status --short` 有未提交改动，先核对它们是否属于
+当前任务、另一条已知工作线或来源不明。当前任务改动继续保留；无关改动不得混入、reset、stash
+或覆盖，能安全隔离时使用独立分支或用户已授权的 worktree。只有归属不明、修改范围重叠或无法
+安全隔离时才询问用户。
 
 工作区干净后，根据用户目标和业务语义创建或选择分支。当前已在工作分支时，先判断分支是否
 基于对应基线、提交范围只包含本次任务，且分支名能表达业务主题；满足这些条件就继续使用当前

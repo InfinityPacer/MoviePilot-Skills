@@ -196,9 +196,9 @@ python scripts/check_new_plugin_tests.py --base-ref origin/main
 任何失败都要修复或明确报告，不能带失败进入 PR。若同一 HEAD 已在开发阶段完成全量回归且之后
 没有任何改动，可引用该结果；一旦 HEAD、依赖、测试脚手架或环境变量边界变化，重新运行对应门禁。
 
-## 5. 提交前确认
+## 5. 提交与授权
 
-展示以下内容并取得维护者明确确认后，才能 commit 或 push：
+commit、push 前核对：
 
 - 分支名和交付路径：PR-only 或发版路径；
 - 版本同步位置，PR-only 写明未改版本；
@@ -206,7 +206,9 @@ python scripts/check_new_plugin_tests.py --base-ref origin/main
 - `git diff --stat`；
 - 拟用的单行英文 Conventional Commit subject。
 
-确认一次可以覆盖紧接着执行的 commit 或 push；用户只确认 commit 时，不得推送。
+本地 commit 服从当前 `dev-workflow`、已批准计划或本轮用户授权；已有授权时直接执行，不重复确认。
+push、PR、Auto-merge 和 release 是独立的外部交付边界，只有当前指令或既有授权已覆盖时才能执行；
+只授权 commit 时不得推送。
 
 ## 6. 创建并自动合并 PR
 
@@ -220,11 +222,11 @@ git diff --name-only origin/main...HEAD
 
 提交列表或文件列表出现旧版本发布、无关插件、无关仓库元数据时，停止创建 PR，改用干净分支重做。
 
-维护者确认 push 后，先推送当前已核对分支，再使用真实换行的临时 Markdown 文件创建中文 PR：
+push/PR 已获授权后，先推送当前已核对分支，再使用真实换行的临时 Markdown 文件创建 PR：
 
 ```bash
 BRANCH="$(git branch --show-current)"
-PR_TITLE="chore(plugin): update plugin"
+PR_TITLE="fix(plugin): 修复插件行为"
 BODY_FILE="/tmp/moviepilot-plugin-pr.md"
 git push -u origin "${BRANCH}"
 gh pr create \
@@ -235,33 +237,18 @@ gh pr create \
   --body-file "${BODY_FILE}"
 ```
 
-PR 正文必须为维护者提供判断改动是否成立所需的上下文，不能只列文件或实现动作。除确实不适用的
-章节外，按以下顺序使用中文 Markdown 标题：
+PR 标题、正文和 issue 回复默认使用中文，commit subject 使用英文 Conventional Commit；仓库模板
+或维护者另有要求时从其要求。同时应用 `dev-workflow` 的通用 PR 沟通与隐私契约，本 skill 不复制
+固定章节模板。正文深度随改动风险调整，标题必须描述主要行为或维护结果，不能用测试或实现手段
+掩盖生产行为变化，也不要重复自动生成的 PR 摘要。
 
-1. `## 问题与背景`：说明用户可感知的问题、预期与实际行为，或非缺陷类改动的维护目标；
-2. `## 原因分析`：说明已确认的直接原因、触发条件和边界；原因尚未完全确认时明确证据与未知项，
-   不把推测写成事实；
-3. `## 解决方案`：说明改了什么以及为什么选择该方案；存在有意义的替代方案或兼容取舍时简述
-   未采用原因；
-4. `## 影响与风险`：说明受影响路径、用户行为、兼容性、配置/数据迁移要求和剩余风险；经核实无
-   特殊迁移或兼容影响时也要明确写出结论；
-5. `## 验证`：列出可复现命令或结果摘要，并如实写明未验证项及原因类别；
-6. `## 关联`：列出 issue、联动 PR、合并顺序或兼容关系；没有关联项时可省略。
+MoviePilot 专项内容只补充个人插件仓、门禁、Auto-merge 与 release 终态。PR-only 不得声称已做
+版本升级、tag 或 GitHub Release；无需为了模板主动列出这些“未做事项”，除非现有上下文会产生
+交付路径歧义。发版路径正文应列出实际版本事实同步位置。Issue 仅在修复完整且合并后应自动关闭时
+使用 `Fixes`；部分处理或背景关联使用 `Refs`，跨仓使用完整 URL。
 
-纯文档、工作流或机械维护可以把“问题与背景”和“原因分析”合并为 `## 背景与目标`，但仍须说明
-为什么需要改、为什么采用当前方案、影响边界和验证结果，不能退化为 diff 摘要或本地执行流水账。
-
-PR 还必须包含交付路径。PR-only 正文必须明确不包含版本升级、tag 或 GitHub Release；发版路径
-正文必须列出版本事实同步位置。
-
-Issue 关联按以下规则写入正文：
-
-- 同仓 issue，修复已确认且 PR 合并后应自动关闭：`Fixes #<number>`；
-- 同仓 issue，仅作背景、讨论或不应自动关闭：`Refs #<number>`；
-- issue 与 PR 不在同一仓库：使用 issue 完整 URL，不依赖短编号；
-- 无法确认是否应自动关闭时，默认使用 `Refs`，不得擅自关闭 issue。
-
-回读 PR 正文确认渲染和隐私无误，并等待 `Plugin release gate` 至少出现一次。若 Required Check
+回读 PR 正文确认其与改动规模匹配、无需本地讨论即可理解主要问题、行为变化、必要边界和验证结果，
+并检查隐私后等待 `Plugin release gate` 至少出现一次。若 Required Check
 或 Ruleset 缺失，将其作为仓库治理阻塞报告；常规交付中不要创建或修改 Ruleset，除非维护者明确
 把仓库治理作为本次任务。
 

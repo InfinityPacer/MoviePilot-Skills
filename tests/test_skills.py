@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import re
+import subprocess
+import tempfile
 from pathlib import Path
 
 
@@ -114,13 +116,14 @@ def test_router_skills_only_route_and_do_not_execute_delivery_work() -> None:
             assert text not in router
 
 
-def test_development_skills_stop_before_commit_push_or_pr() -> None:
-    """开发 skill 负责本地开发验证，最终全量门禁和交付交给 PR/release skill。"""
+def test_development_skills_allow_authorized_local_commits_but_stop_before_delivery() -> None:
+    """开发 skill 可按通用 workflow 本地提交，但外部交付仍转 delivery skill。"""
     main = _read_skill("moviepilot-main-development")
     plugin = _read_skill("moviepilot-plugin-development")
 
     for skill in (main, plugin):
-        assert "本 skill 不 commit、不 push、不创建 PR" in skill
+        assert "本地 commit 服从当前 `dev-workflow`、已批准计划或用户授权" in skill
+        assert "不 push、不创建 PR" in skill
         assert "gh pr create" not in skill
         assert "gh pr merge" not in skill
         assert "gh issue comment" not in skill
@@ -131,16 +134,17 @@ def test_development_skills_stop_before_commit_push_or_pr() -> None:
     assert "moviepilot-official-plugin-pr" in plugin
 
 
-def test_development_skills_require_clean_workspace_and_business_branches() -> None:
-    """开发 skill 开始任务前必须先确认干净工作区，并按业务语义拉分支。"""
+def test_development_skills_classify_existing_changes_and_use_business_branches() -> None:
+    """开发 skill 先判断已有改动归属，只有无法安全隔离时才询问。"""
     for name in ("moviepilot-main-development", "moviepilot-plugin-development"):
         skill = _read_skill(name)
 
-        assert "开始任务前先判断工作区是否干净" in skill
-        assert "若 `git status --short` 有未提交改动" in skill
-        assert "先停止并询问用户" in skill
-        assert "不要擅自 reset、stash、覆盖、带入新任务或代替用户判断归属" in skill
-        assert "工作区干净后，根据用户目标和业务语义创建或选择分支" in skill
+        assert "开始任务前先判断工作区状态和改动归属" in skill
+        assert "当前任务改动继续保留" in skill
+        assert "无关改动不得混入、reset、stash" in skill
+        assert "只有归属不明、修改范围重叠或无法" in skill
+        assert "安全隔离时才询问用户" in skill
+        assert "根据用户目标和业务语义创建或选择分支" in skill
         assert "分支名与业务语义不一致" in skill
         assert "创建" in skill
         assert "新的业务分支" in skill
@@ -184,14 +188,16 @@ def test_delivery_skills_cover_commit_push_pr_tracking_and_issue_reply() -> None
     for name in DELIVERY_SKILLS:
         skill = _read_skill(name)
 
-        assert "commit、push 前" in skill or "commit 或 push" in skill
+        assert "本地 commit 服从当前 `dev-workflow`、已批准计划或本轮用户授权" in skill
+        assert "已有授权时直接执行，不重复确认" in skill
+        assert "独立的外部交付边界" in skill
         assert 'git push -u origin "${BRANCH}"' in skill
         assert "gh pr create" in skill
         assert "gh pr view" in skill
         assert "Fixes #<number>" in skill
         assert "Refs #<number>" in skill
         assert "完整 URL" in skill
-        assert "默认使用 `Refs`" in skill
+        assert "部分处理或背景关联" in skill
         assert "回复来源 Issue" in skill
         assert "gh issue comment" in skill
         assert "回读 issue" in skill
@@ -199,38 +205,29 @@ def test_delivery_skills_cover_commit_push_pr_tracking_and_issue_reply() -> None
 
 
 def test_delivery_skills_require_maintainer_facing_pr_context() -> None:
-    """三个交付 skill 的 PR 正文都必须解释问题、方案理由、影响风险和验证边界。"""
-    required_sections = (
-        "## 问题与背景",
-        "## 原因分析",
-        "## 解决方案",
-        "## 影响与风险",
-        "## 验证",
-        "## 关联",
-    )
-
-    contracts = []
+    """三个交付 skill 组合通用契约，只保留 MoviePilot 专项正文边界。"""
     for name in DELIVERY_SKILLS:
         skill = _read_skill(name)
 
-        positions = [skill.index(section) for section in required_sections]
-        assert positions == sorted(positions), name
-        assert "不能只列文件或实现动作" in skill
-        assert "为什么选择该方案" in skill
-        assert "不把推测写成事实" in skill
-        assert "兼容性、配置/数据迁移要求和剩余风险" in skill
-        assert "未验证项及原因类别" in skill
-        assert "## 背景与目标" in skill
-        assert "不能退化为 diff 摘要或本地执行流水账" in skill
-        contract = re.search(
-            r"PR 正文必须为维护者提供.*?不能退化为 diff 摘要或本地执行流水账。",
-            skill,
-            flags=re.DOTALL,
-        )
-        assert contract, name
-        contracts.append(contract.group(0))
+        assert "PR 标题、正文和 issue 回复默认使用中文" in skill
+        assert "commit subject 使用英文 Conventional Commit" in skill
+        assert "应用 `dev-workflow` 的通用 PR 沟通与隐私契约" in skill
+        assert "不复制" in skill
+        assert "固定章节模板" in skill
+        assert "正文深度随改动风险调整" in skill
+        assert "不能用测试或" in skill
+        assert "掩盖生产行为变化" in skill
+        assert "不要重复自动生成的 PR 摘要" in skill
+        assert "## 问题与背景" not in skill
+        assert "## 影响与风险" not in skill
 
-    assert len(set(contracts)) == 1
+    upstream = _read_skill("moviepilot-upstream-pr")
+    official = _read_skill("moviepilot-official-plugin-pr")
+    personal = _read_skill("moviepilot-plugin-delivery")
+    assert "fork/upstream 边界、`v3` 目标" in upstream
+    assert "官方插件 fork、`upstream/main`" in official
+    assert "个人插件仓、门禁、Auto-merge 与 release 终态" in personal
+    assert "无需为了模板主动列出这些“未做事项”" in personal
 
 
 def test_official_and_upstream_prs_do_not_auto_merge() -> None:
@@ -323,3 +320,65 @@ def test_readme_sync_is_idempotent_and_deletes_stale_installed_files() -> None:
     assert "rsync" in readme
     assert "--delete" in readme
     assert "cp -R" not in readme
+
+
+def test_workspace_instruction_source_is_versioned_and_documents_the_runtime_link() -> None:
+    """MoviePilot 工作区规则必须由本仓事实源和工作区软链接加载。"""
+    source = REPO_ROOT / "instructions/moviepilot-workspace.md"
+    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+
+    assert source.is_file()
+    text = source.read_text(encoding="utf-8")
+    assert "MoviePilot 面向中文社区" in text
+    assert "PR 标题、PR 正文、issue/review 回复默认使用中文" in text
+    assert "Commit message 默认只写 subject" in text
+    assert "使用英文撰写" in text
+    assert "Goal 或已批准 plan 边界" in text
+    assert "ledger 或 plan" not in text
+    assert "instructions/moviepilot-workspace.md" in readme
+    assert "../AGENTS.md" in readme
+    assert "相对软链接" in readme
+    assert "MoviePilot-Skills/instructions/moviepilot-workspace.md" in readme
+    assert "readlink ../AGENTS.md" in readme
+    assert "test -L ../AGENTS.md || ln -s " in readme
+    assert "ln -sfn" not in readme
+    assert "普通文件" in readme
+    assert "拒绝覆盖" in readme
+    assert "没有更近的仓库或目录级 `AGENTS.md` 时" in text
+    assert "插件仓自身无 `AGENTS.md`" not in text
+    assert "## Delivery Hygiene" not in text
+    tracked = subprocess.run(
+        ["git", "ls-files", "--error-unmatch", "instructions/moviepilot-workspace.md"],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert tracked.returncode == 0, "workspace instruction source must be tracked by git"
+
+
+def test_workspace_link_command_refuses_to_replace_a_regular_file() -> None:
+    """恢复工作区入口时不得覆盖已有本地规则文件。"""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        workspace = Path(temp_dir)
+        skill_repo = workspace / "MoviePilot-Skills"
+        skill_repo.mkdir()
+        target = workspace / "AGENTS.md"
+        target.write_text("local rules\n", encoding="utf-8")
+
+        result = subprocess.run(
+            [
+                "sh",
+                "-c",
+                "test -L ../AGENTS.md || "
+                "ln -s MoviePilot-Skills/instructions/moviepilot-workspace.md ../AGENTS.md",
+            ],
+            cwd=skill_repo,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        assert result.returncode != 0
+        assert not target.is_symlink()
+        assert target.read_text(encoding="utf-8") == "local rules\n"

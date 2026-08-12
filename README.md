@@ -1,6 +1,20 @@
 # MoviePilot Skills
 
-MoviePilot 工作区的 Codex / Claude Code skill 事实源。先改本仓，通过验证后再同步安装副本。
+MoviePilot 工作区的 Codex / Claude Code skill 与工作区指令事实源。先改本仓，通过验证后再同步安装副本。
+
+## Workspace Instructions
+
+`instructions/moviepilot-workspace.md` 由工作区根 `../AGENTS.md` 通过相对软链接加载。修改
+MoviePilot 工作区规则时编辑本仓事实源，并验证软链接仍可读；不要在工作区根维护独立副本。
+从本仓根目录恢复并校验入口：
+
+```bash
+test -L ../AGENTS.md || ln -s MoviePilot-Skills/instructions/moviepilot-workspace.md ../AGENTS.md
+test "$(readlink ../AGENTS.md)" = "MoviePilot-Skills/instructions/moviepilot-workspace.md"
+test -r ../AGENTS.md
+```
+
+若目标已是普通文件，`ln -s` 会拒绝覆盖；先人工核对并迁移其中仍有效的规则，不要强制替换。
 
 ## Skills
 
