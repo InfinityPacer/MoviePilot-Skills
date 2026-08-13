@@ -160,7 +160,8 @@ def test_personal_plugin_delivery_has_two_terminal_paths() -> None:
     assert "不做版本升级、tag、GitHub Release 或发布回查" in skill
     assert "Plugin Release" in skill
     assert "tag" in skill
-    assert "zip" in skill
+    assert "tag 为 `PluginId_v版本`，且指向该 merge commit" in skill
+    assert "唯一 ZIP 资产元数据正确，默认不下载 ZIP" in skill
     assert "--auto --squash" in skill
     assert "--match-head-commit" in skill
     assert "--delete-branch" not in skill

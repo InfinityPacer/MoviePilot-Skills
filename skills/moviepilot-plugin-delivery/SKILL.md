@@ -15,7 +15,7 @@ PR-only 和发版闭环都走本 skill；不得直接 push `main`。
 | 任务 | 终态 |
 | --- | --- |
 | PR-only：普通维护、CI、文档或非版本发布 PR 使用本 skill 的 PR-only 路径 | PR、`Plugin release gate`、Auto-merge、本地 `main` 同步、按需回复 issue；不做版本升级、tag、GitHub Release 或发布回查 |
-| 发版路径：发布插件、版本升级、更新 package/history/README 版本事实 | PR、`Plugin release gate`、Auto-merge、`Plugin Release` workflow、tag/Release/zip 资产回查、最终回复 issue |
+| 发版路径：发布插件、版本升级、更新 package/history/README 版本事实 | PR、`Plugin release gate`、Auto-merge、`Plugin Release` workflow、tag/Release 元数据回读、最终回复 issue |
 
 不得把“本地改完”“PR 已创建”“Action 已触发”当成交付完成；必须到达所选终态。
 
@@ -296,8 +296,8 @@ PR-only 路径到这里结束：确认 PR 的 `mergedAt`、`mergeCommit`、目�
 发版路径继续等待并确认：
 
 1. `Plugin Release` workflow 对该 merge commit 成功；
-2. tag 为 `PluginId_v版本`；
-3. Release 标题、说明和 zip 资产版本正确；
+2. tag 为 `PluginId_v版本`，且指向该 merge commit；
+3. GitHub Release 的标题、说明和唯一 ZIP 资产元数据正确，默认不下载 ZIP；
 4. `main` 上 package、README 和 `plugin_version` 仍一致。
 
 若 workflow 失败，读取失败 step 和日志，修复后重新走分支 PR；不要直接改 `main`。
