@@ -85,7 +85,7 @@
 - 浏览器 profile 使用本地 MoviePilot 登录 item 的 `username`/`password` 字段；SSH profile 使用主机、用户名和认证字段；NAS profile 的地址明确来自 item 顶层 `website` URL，并启用 `sudo`。`notesPlain` 不作为隐式地址或凭据兜底。
 - `.ops/moviepilot/.login` 和 `.ops/moviepilot-server/.ssh` 是已退役的明文凭据位置，不得重新创建、提交、打印、截图或写入日志。新自动化不得支持 file provider、`usr`/`pwd` 历史键名或其他明文 fallback。
 - 1Password secret value 只能由 `$secure-access` 在内存中读取；禁止通过命令行参数、环境变量、临时文件、shell trace 或日志传递 secret value。`op://...` item 引用属于非敏感配置，可以出现在本地 profile 和 agent 指令中。
-- 运行前确认本机 `op` 已安装并完成 app-integration 授权。每个用户任务使用一个持续交互式终端/PTY；同一任务内不得拆分多个 `op` 预检或独立终端。读取失败时直接失败，不得回退到本地凭据文件。
+- `$secure-access` 默认使用已安装的 machine provider，不要求当前终端预先完成 `op` app-integration 授权。只有用户明确要求显式授权，或 machine provider 失败且确认用户在场后，才在当前交互 PTY 以 `--provider interactive` 发起一次独立请求；不得自动弹出授权、循环重试或回退到本地凭据文件。
 
 ## Commit & Pull Request Guidelines
 - 推荐 Conventional Commits：`feat(scope): ...`、`fix(scope): ...`、`chore: ...`、`refactor: ...`。
