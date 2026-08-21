@@ -4,18 +4,18 @@
 本工作区是多仓协作：
 - `MoviePilot/`：后端（FastAPI），核心代码在 `app/`，迁移在 `database/versions/`，测试在 `tests/`。
 - `MoviePilot-Frontend/`：前端（Vue3 + Vite），主代码在 `src/`，静态资源在 `public/`。
-- `MoviePilot-Plugins/`：插件集合，插件目录在 `plugins/` 与 `plugins.v2/`，索引在 `package.json`、`package.v2.json`。
+- `MoviePilot-Plugins/`：插件集合，插件目录在 `plugins/`、`plugins.v2/` 与 `plugins.v3/`，索引在 `package.json`、`package.v2.json`、`package.v3.json`。
 
 ## Build, Test, and Development Commands
 后端（`MoviePilot/`）：
-- `pip install -r requirements.txt`：安装依赖（Python 3.12+）。
-- `python -m app.main`：本地启动后端（默认 API `3001`）。
+- `UV_PROJECT_ENVIRONMENT=.venv uv sync --locked --directory MoviePilot`：按 `pyproject.toml` 与 `uv.lock` 安装依赖（Python 3.14+）。
+- `<workspace>/.venv/bin/python -m app.main`：本地启动后端（默认 API `3001`），工作目录为 `MoviePilot/`。
 - 后端与插件单测命令统一见「Testing Guidelines」，不要在本段维护第二套测试入口。
 - `pylint app`：与 CI 一致的静态检查。
 
 本地 Python 环境：
-- 优先使用工作区根目录解释器 `<workspace>/.venv/bin/python`（Python 3.12），并以 `MoviePilot/` 作为后端工作目录运行脚本。
-- 不要默认使用 `MoviePilot/.venv/bin/python`；该子仓库虚拟环境可能是旧的 Python 3.9 或依赖不完整环境，容易导致 `typing.Self`、缺依赖或调试误判。
+- 优先使用工作区根目录解释器 `<workspace>/.venv/bin/python`（Python 3.14+），并以 `MoviePilot/` 作为后端工作目录运行脚本。
+- 不要使用 `MoviePilot/.venv/bin/python`；后端仓库内不保留独立运行环境，统一使用工作区根 `.venv`，避免解释器版本和依赖状态分叉。
 - PyCharm 运行配置中，解释器应指向工作区根目录 `.venv/bin/python`，工作目录保持 `<workspace>/MoviePilot`。
 
 前端（`MoviePilot-Frontend/`）：
@@ -38,8 +38,8 @@
 - Vue/TS/SCSS：2 空格、单引号、无分号（遵循 Prettier/ESLint 配置）。
 - 组件命名 `PascalCase.vue`；组合式函数命名 `useXxx.ts`。
 - 新增插件时，目录名与插件 ID 保持稳定，并同步更新插件索引文件。
-- 插件 README 规范：新增或重写 `plugins.v2/<plugin>/README.md` 时，以仓库根 `TEMPLATE_README.md` 为基础——配置项中文名必须与 `get_form` 里该字段的 `label` 字符串完全一致（包括括号注解如"（实验性功能）"），不要按"功能描述"自己拟名；默认值以 `get_form` 返回的 form-default 字典为准；可选枚举与 `get_form` 的 `items` 一一对齐；禁止只翻译表单 hint；禁止在正文出现"源码 line N / `get_form` 返回 / `init_plugin` 默认值"等元信息；高频翻车配置项放到「深入说明」展开，并按 `<a id="cfg-<config_key>"></a>` 显式锚点从配置表跳转。详细写作约定见 `TEMPLATE_README.md` 顶部 HTML 注释。
-- 插件市场首页链接：插件仓库根 `README.md` 的"插件说明"小节，存在独立 README 的插件标题须改成 `[<插件名>](plugins.v2/<plugin>/README.md)`，链接路径只指 `plugins.v2/`，不回指 `plugins/`（v1）。
+- 插件 README 规范：新增或重写 `plugins.v2/` 或 `plugins.v3/` 下任一插件的 `README.md` 时，以仓库根 `TEMPLATE_README.md` 为基础——配置项中文名必须与 `get_form` 里该字段的 `label` 字符串完全一致（包括括号注解如"（实验性功能）"），不要按"功能描述"自己拟名；默认值以 `get_form` 返回的 form-default 字典为准；可选枚举与 `get_form` 的 `items` 一一对齐；禁止只翻译表单 hint；禁止在正文出现"源码 line N / `get_form` 返回 / `init_plugin` 默认值"等元信息；高频翻车配置项放到「深入说明」展开，并按 `<a id="cfg-<config_key>"></a>` 显式锚点从配置表跳转。详细写作约定见 `TEMPLATE_README.md` 顶部 HTML 注释。
+- 插件市场首页链接：插件仓库根 `README.md` 的"插件说明"小节，存在独立 README 的插件标题须链接到实际代际目录（`plugins.v3/`、`plugins.v2/` 或 `plugins/`），不得把 V3 插件链接回旧代目录。
 
 ## Code Comments
 - 默认继承全局注释规范；本节只补充 MoviePilot 工作区的 repo-specific 要求，避免重复维护两套通用规则。
@@ -52,14 +52,14 @@
 ## Testing Guidelines
 - 后端测试统一放在 `MoviePilot/tests/`，文件名使用 `test_*.py`。
 - 涉及外部服务（TMDB、下载器、媒体服务器、LLM 目录、MP 服务器、任意外链）优先 mock，保证可重复执行；验收标准是全量跑测零真实出站。详见 `MoviePilot/docs/testing.md`。
-- 后端单测优先使用单测专用环境 `<workspace>/.venv-test/bin/python`：该环境仅安装 `MoviePilot/requirements.in` 与 `pytest`，不含 `app.helper.sites` 等动态拉取模块，能真实复现 CI / 全新环境，避免本地编译产物（如 `app/helper/*.so`）和额外包掩盖问题。
-- 缺失的动态拉取模块（`app.helper.sites`）由 `MoviePilot/tests/conftest.py` 统一补垫片；单测不应依赖本地已拉取的副本。重建命令：`python3.12 -m venv .venv-test && .venv-test/bin/pip install -r MoviePilot/requirements.in pytest`。
-- 插件仓单测放在各插件仓库根 `tests/` 下（**不放插件目录内**：插件按整目录 `copytree` 下发，目录内测试会被带进运行时副本），按 v1/v2 分治；所有插件都按插件 ID 独立建目录，例如 `tests/v2/subscribeassistant/`、`tests/v2/agenttokens/`，不要把用例文件直接平铺在 `tests/v1/` 或 `tests/v2/` 下；插件独立目录内的测试文件名使用 `test_*.py`，不再重复插件名前缀。各插件仓脚手架（`pytest.ini`/`tests/_bootstrap.py`/`conftest.py`/`tests/run.py`）保持 canonical 一致。没有更近的仓库或目录级 `AGENTS.md` 时，以本基线为准。
+- 后端单测优先使用单测专用环境 `<workspace>/.venv-test/bin/python`：该环境按 `MoviePilot/pyproject.toml` 与 `uv.lock` 安装依赖，不依赖本地生成的站点扩展资源，能复现 CI / 全新环境，避免本地编译产物和额外包掩盖问题。
+- 测试环境缺失 `app.application.site.sites` 时，由 `MoviePilot/tests/conftest.py` 复用的 `app.testing.bootstrap` 提供最小垫片。重建命令：`uv venv --python 3.14 --clear .venv-test && (cd MoviePilot && uv export --locked --all-groups --format requirements.txt | uv pip sync --python ../.venv-test/bin/python -)`。
+- 插件仓单测放在各插件仓库根 `tests/` 下（**不放插件目录内**：插件按整目录 `copytree` 下发，目录内测试会被带进运行时副本），按目标仓库实际支持的代际目录分组（通常为 `v3/`、`v2/`、`v1/`）；每个插件按 ID 建独立子目录，例如 `tests/v3/<plugin_id>/`，不要把用例文件直接平铺在代际目录下；插件独立目录内的测试文件名使用 `test_*.py`，不再重复插件名前缀。各仓脚手架以目标仓库现有实现为准，不要求跨仓机械相同。没有更近的仓库或目录级 `AGENTS.md` 时，以本基线为准。
 - 插件仓 `pytest.ini` 应配置 `addopts = --import-mode=importlib`，避免不同插件独立目录内复用 `test_plugin.py` 等同名测试文件时触发 pytest 默认导入模式的模块名冲突。
 - 插件单测统一使用 pytest 风格：普通测试函数或测试类均可，断言使用 `assert`；不要新增 `unittest.TestCase`、`unittest.main()` 或 `if __name__ == "__main__"` 测试入口。`unittest.mock` 可继续作为 mock 工具使用，“不用 unittest”指测试组织与执行入口不使用 unittest runner。
-- 插件单测经 `tests/_bootstrap.py` 定位同级 `MoviePilot` 后端并注入 `sys.path`、隔离临时 `CONFIG_DIR` 并建表；`app/testing`（`stub_modules` 等）是主程序与插件仓**共享**的 stub harness，bootstrap 后可 `from app.testing import ...` 复用。v1/v2 存在同名包，必须分独立 pytest 会话运行。
+- 插件单测经 `tests/_bootstrap.py` 定位同级 `MoviePilot` 后端并注入 `sys.path`、隔离临时 `CONFIG_DIR` 并建表；`app/testing`（`stub_modules` 等）是主程序与插件仓**共享**的 stub harness，bootstrap 后可 `from app.testing import ...` 复用。不同代可能存在同名包，必须分独立 pytest 会话运行。
 - 插件仓单测必须显式设置 `MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot`，并使用 `<workspace>/.venv-test/bin/python` 运行，避免依赖当前目录层级推导后端路径。
-- 产品代码、共享脚手架、测试基础设施或运行行为改动在提 PR / push 前必须本地跑对应仓库全量并通过：主程序在 `MoviePilot/` 跑 `<workspace>/.venv-test/bin/python tests/run.py`（= pytest 全量、零真实出站）；插件仓跑 `MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot <workspace>/.venv-test/bin/python tests/run.py`（v1/v2 分独立会话全量）。纯文档、说明文本或局部 metadata 变更按实际风险使用更小的可复现检查，不为了形式运行无关全量。
+- 产品代码、共享脚手架、测试基础设施或运行行为改动在提 PR / push 前必须本地跑对应仓库全量并通过：主程序在 `MoviePilot/` 跑 `<workspace>/.venv-test/bin/python tests/run.py`（= pytest 全量、零真实出站）；插件仓跑 `MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot <workspace>/.venv-test/bin/python tests/run.py`，由各仓 runner 按 V3、兼容 V2 和历史代际分组执行。纯文档、说明文本或局部 metadata 变更按实际风险使用更小的可复现检查，不为了形式运行无关全量。
 - 前端改动至少验证 `typecheck`、`lint`，涉及 UI 的 PR 附截图；公开截图前必须脱敏用户名、站点、token、媒体库路径、浏览器资料和其他私有信息。
 
 ## Full-Stack Runtime Verification
@@ -72,13 +72,13 @@
 - 对插件 UI 或模块联邦改动，还要验证远程组件加载、插件运行时副本、插件日志和前端网络请求，避免只改源码但运行时仍加载旧副本。
 
 ## Local Plugin Development & Debugging
-- 插件开发以 `MoviePilot-Plugins/plugins.v2/<plugin>/` 或 `MoviePilot-Plugins/plugins/<plugin>/` 为源码事实源；部分兼容 v2 的插件仍保留在 `plugins/`，未单独新建 `plugins.v2/` 目录。优先通过 `PLUGIN_LOCAL_REPO_PATHS` 指向一个或多个本地插件仓库，让主项目按市场来源读取 package 索引并同步到运行时副本。
+- 插件开发以 `MoviePilot-Plugins/plugins.v3/<plugin>/`、`MoviePilot-Plugins/plugins.v2/<plugin>/` 或 `MoviePilot-Plugins/plugins/<plugin>/` 为源码事实源；部分兼容历史版本的插件仍保留在旧代目录。优先通过 `PLUGIN_LOCAL_REPO_PATHS` 指向一个或多个本地插件仓库，让主项目按市场来源读取 package 索引并同步到运行时副本。
 - 本地插件调试优先启用 `PLUGIN_AUTO_RELOAD=true`，需要暂停定时任务时再启用 `DEV=true`；修改本地仓库源码后，预期由本地插件同步机制更新 `MoviePilot/app/plugins/<plugin>/` 并触发热加载，不再把手动复制运行时副本作为默认步骤。
 - 调试插件问题时，先确认本地插件是否在市场列表中出现、是否已安装、是否触发本地同步与热加载、配置是否已被插件读取，再判断业务逻辑本身；避免把本地仓库路径配置错误、运行时副本不同步、模块缓存未刷新误判为代码问题。
 - 涉及插件配置时，确认配置是否被环境变量或旧配置字段影响；若主项目提示某配置已由环境变量设置，WebUI 修改可能不会改变实际运行行为。
 - 服务列表或运行状态问题优先用后端接口验证实际状态，而不是只看前端表现。普通 WebUI 接口应复用浏览器登录态或 JWT 认证；只有源码明确标注 `API_TOKEN` 的诊断接口（如 `/api/v1/dashboard/schedule2` 这类 `*2` 接口）才使用 `?token=<API_TOKEN>` 访问，并且不得在聊天、PR、issue、日志摘录或截图中输出 token 原文。检查服务状态时重点核对 `id`、`name`、`provider`、`status` 是否重复或来源错误。
 - 调试日志优先查看主日志 `MoviePilot/config/logs/moviepilot.log` 和插件日志目录 `MoviePilot/config/logs/plugins/`；过滤插件 ID/插件名、`plugin.py`、相关模块名、目标 job id 和关键中文服务名，确认加载、热加载、配置读取、注册、移除、执行、异常是否按预期发生。
-- 插件代码或运行态改动的验证优先包括：`python -m py_compile` 对源码和运行时副本编译、`python -m json.tool package.v2.json`、`git diff --check`、旧配置字段/旧文案 `rg` 清理检查，以及一次本地同步、热加载日志或运行时接口验证。纯 README、索引说明、文案或 package metadata 改动按影响面选择 `json.tool`、链接/文本检查、`git diff --check` 等更小闭环即可。
+- 插件代码或运行态改动的验证优先包括：`python -m py_compile` 对源码和运行时副本编译、`python -m json.tool` 校验本次涉及的 `package*.json`、`git diff --check`、旧配置字段/旧文案 `rg` 清理检查，以及一次本地同步、热加载日志或运行时接口验证。纯 README、索引说明、文案或 package metadata 改动按影响面选择 `json.tool`、链接/文本检查、`git diff --check` 等更小闭环即可。
 
 ## Local Secret and Operations Credential Contract
 - 本地浏览器登录和 SSH 登录统一使用 `$secure-access`；每个 profile 指定一个 1Password item 和明确字段，地址、用户名、密码或私钥在一次 item 读取中解析到内存。
@@ -97,7 +97,7 @@
 - GitHub 操作默认先直接使用 `gh`
 - commit、push、PR、release 权限以当前适用的 workflow/delivery skill、本轮用户明确授权、Goal 或已批准 plan 边界为准；这些事实源已授权时不要二次确认，未授权时 commit 或 push 前先获得维护者确认。
 - 主程序后端或前端向上游提交 PR 时，必须使用 `moviepilot-upstream-pr` skill。
-- 插件发版时必须使用 `moviepilot-plugin-delivery` skill；当前仅修改 `plugins.v2/`，非明确要求不要改 `plugins/`。
+- 插件发版时必须使用 `moviepilot-plugin-delivery` skill；V3 专用改动进入 `plugins.v3/`，V1/V2 仅在明确要求兼容或维护历史实现时修改对应目录。
 - 当前只维护 v3：主程序前后端 PR 目标为上游 `v3`，插件仓发布目标为 `main`。
 
 ## Official Wiki Alignment (Important)

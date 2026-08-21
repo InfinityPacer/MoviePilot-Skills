@@ -42,16 +42,16 @@ git fetch upstream main
 
 | 场景 | 命令 |
 | --- | --- |
-| 局部插件测试：改动集中在单个插件，且需要快速复现或回归该插件行为 | `pytest tests/<v1\|v2>/<plugin_id> -q` |
+| 局部插件测试：改动集中在单个插件，且需要快速复现或回归该插件行为 | `pytest tests/<v1\|v2\|v3>/<plugin_id> -q` |
 | 全量回归：准备提交官方仓 PR、跨插件共享脚手架变更、测试基础设施变更、或局部结果不足以覆盖风险 | `tests/run.py` |
-| 新增插件目录：PR 新增 `plugins/` 或 `plugins.v2/` 插件目录 | 若仓库存在脚本，运行 `scripts/check_new_plugin_tests.py --base-ref upstream/main`；否则确认对应 `tests/<v1\|v2>/<plugin_id>/test_*.py` 已存在并运行局部/全量测试 |
+| 新增插件目录：PR 新增 `plugins/`、`plugins.v2/` 或 `plugins.v3/` 插件目录 | 若仓库存在脚本，运行 `scripts/check_new_plugin_tests.py --base-ref upstream/main`；否则确认对应 `tests/<v1\|v2\|v3>/<plugin_id>/test_*.py` 已存在并运行局部/全量测试 |
 | 基础文件检查：索引、metadata、版本、JSON、编译或空白敏感改动 | 版本门禁、`json.tool`、`compileall`、`git diff --check` |
 
 常用命令：
 
 ```bash
 WORKSPACE="${WORKSPACE:?set workspace root}"
-PLUGIN_KIND=v2
+PLUGIN_KIND=v3
 PLUGIN_ID="${PLUGIN_ID:?set plugin id}"
 TEST_TARGET="tests/${PLUGIN_KIND}/${PLUGIN_ID}"
 PLUGIN_DIR="plugins.${PLUGIN_KIND}/${PLUGIN_ID}"
@@ -75,9 +75,10 @@ fi
   env -u CONFIG_DIR \
     "${WORKSPACE}/.venv-test/bin/python" tests/run.py
 )
-python .github/scripts/check_plugin_versions.py package.json package.v2.json
+python .github/scripts/check_plugin_versions.py package.json package.v2.json package.v3.json
 python -m json.tool package.json >/dev/null
 python -m json.tool package.v2.json >/dev/null
+python -m json.tool package.v3.json >/dev/null
 python -m compileall -q "${PLUGIN_DIR}"
 git diff --check
 ```
