@@ -277,7 +277,7 @@ def test_upstream_backend_pylint_uses_workspace_test_venv() -> None:
 
 
 def test_plugin_test_commands_map_to_clear_scenarios() -> None:
-    """插件测试命令按场景选择，并显式覆盖 base-ref、A 档覆盖率和 v1/v2 编译路径。"""
+    """插件测试命令按场景选择，并显式覆盖 base-ref、A 档覆盖率和三代编译路径。"""
     for name in ("moviepilot-plugin-development", "moviepilot-plugin-delivery", "moviepilot-official-plugin-pr"):
         skill = _read_skill(name)
 
@@ -285,10 +285,11 @@ def test_plugin_test_commands_map_to_clear_scenarios() -> None:
         assert "全量回归" in skill
         assert "新增插件目录" in skill
         assert "基础文件检查" in skill
-        assert "PLUGIN_KIND=v2" in skill
+        assert "PLUGIN_KIND=v3" in skill
         assert 'PLUGIN_DIR="plugins.${PLUGIN_KIND}/${PLUGIN_ID}"' in skill
         assert 'PLUGIN_DIR="plugins/${PLUGIN_ID}"' in skill
         assert 'python -m compileall -q "${PLUGIN_DIR}"' in skill
+        assert "package.v3.json" in skill
 
     personal = _read_skill("moviepilot-plugin-delivery")
     assert "scripts/plugin_coverage.py --base-ref ${BASE_REF}" in personal

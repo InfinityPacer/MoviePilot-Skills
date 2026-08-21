@@ -72,7 +72,7 @@ Claude Code 对应使用 `claude/release/${PLUGIN_ID}-${VERSION}`。若目标分
 发版路径按以下顺序核对，不要只搜索版本字符串：
 
 1. 插件类的 `plugin_version`；
-2. `package.json` 或 `package.v2.json` 对应条目的 `version`；
+2. `package.json`、`package.v2.json` 或 `package.v3.json` 对应条目的 `version`；
 3. 对应 `history["v版本"]` 的用户可读说明；
 4. 若插件存在独立 README，其顶部“版本更新日志”必须有同版本、同语义条目；
 5. 插件目录、package key、插件 ID 和 `plugin_version` 必须属于同一插件。
@@ -102,7 +102,7 @@ git config --get core.hooksPath
 版本、package、history、README，再运行：
 
 ```bash
-python .github/scripts/check_plugin_versions.py package.json package.v2.json
+python .github/scripts/check_plugin_versions.py package.json package.v2.json package.v3.json
 ```
 
 ## 4. 验证
@@ -116,10 +116,10 @@ python .github/scripts/check_plugin_versions.py package.json package.v2.json
 
 | 场景 | 命令 |
 | --- | --- |
-| 局部插件测试：改动集中在单个插件，且需要快速复现或回归该插件行为 | `pytest tests/<v1\|v2>/<plugin_id> -q` |
+| 局部插件测试：改动集中在单个插件，且需要快速复现或回归该插件行为 | `pytest tests/<v1\|v2\|v3>/<plugin_id> -q` |
 | A 档覆盖率门禁：目标插件属于 `plugin_quality.json` A 档，或改动触及覆盖率门禁脚本/配置 | `scripts/plugin_coverage.py --base-ref ${BASE_REF}` |
 | 全量回归：PR-only 或发版 PR 前的最终门禁；跨插件共享脚手架、测试基础设施、局部结果不足时必须保留 | `tests/run.py -q` |
-| 新增插件目录：PR 新增 `plugins/` 或 `plugins.v2/` 插件目录 | `scripts/check_new_plugin_tests.py --base-ref origin/main` |
+| 新增插件目录：PR 新增 `plugins/`、`plugins.v2/` 或 `plugins.v3/` 插件目录 | `scripts/check_new_plugin_tests.py --base-ref origin/main` |
 | 基础文件检查：版本、索引、README、JSON、编译或空白敏感改动 | 版本门禁、`json.tool`、`compileall`、`git diff --check` |
 
 常用变量：
@@ -127,7 +127,7 @@ python .github/scripts/check_plugin_versions.py package.json package.v2.json
 ```bash
 WORKSPACE="${WORKSPACE:?set workspace root}"
 BASE_REF=origin/main
-PLUGIN_KIND=v2
+PLUGIN_KIND=v3
 PLUGIN_ID="${PLUGIN_ID:?set plugin id}"
 TEST_TARGET="tests/${PLUGIN_KIND}/${PLUGIN_ID}"
 PLUGIN_DIR="plugins.${PLUGIN_KIND}/${PLUGIN_ID}"
@@ -177,6 +177,7 @@ A 档覆盖率门禁：
 ```bash
 python -m json.tool package.json >/dev/null
 python -m json.tool package.v2.json >/dev/null
+python -m json.tool package.v3.json >/dev/null
 python -m compileall -q "${PLUGIN_DIR}"
 git diff --check
 ```

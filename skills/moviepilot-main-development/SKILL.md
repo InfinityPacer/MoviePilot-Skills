@@ -89,18 +89,19 @@ WORKSPACE="${WORKSPACE:?set workspace root}"
 
 ```bash
 WORKSPACE="${WORKSPACE:?set workspace root}"
-TEST_TARGET=tests
 (
   set -a
   . "${WORKSPACE}/app.env"
   set +a
-  env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" -m pytest "${TEST_TARGET}" -q
+  env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" tests/run.py -q
 )
+
+# 只有断点、顺序污染或覆盖率采集需要单进程时才显式串行。
 (
   set -a
   . "${WORKSPACE}/app.env"
   set +a
-  env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" tests/run.py
+  env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" tests/run.py --serial -q
 )
 ```
 
