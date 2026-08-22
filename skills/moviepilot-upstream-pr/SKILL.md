@@ -39,7 +39,31 @@ git fetch upstream v3
 
 ### 后端 `MoviePilot`
 
-在仓库根运行：
+默认按改动选择 focused 验证。有受影响的后端测试时，将 `TEST_TARGET` 设为测试文件、目录或测试选择器；
+有 Python 改动时，将 `PYTHON_TARGETS` 设为本次改动的 Python 文件：
+
+```bash
+WORKSPACE="${WORKSPACE:?set workspace root}"
+if [ -n "${TEST_TARGET:-}" ]; then
+  (
+    set -a
+    . "${WORKSPACE}/app.env"
+    set +a
+    env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" -m pytest "${TEST_TARGET}" -q
+  )
+fi
+if [ -n "${PYTHON_TARGETS:-}" ]; then
+  env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" -m pylint ${PYTHON_TARGETS}
+fi
+git diff --check
+```
+
+`<workspace>/app.env` 是本机命令 env-file；不得读取、打印、提交或写进公开正文，不要把 env-file 内容拼进命令参数。
+`CONFIG_DIR` 不得从本地运行态环境泄漏进单测；测试必须零真实出站。Pylint 默认只检查改动的 Python
+文件，不能把局部测试或局部静态检查冒充全量结果。
+
+以下情况才在本地扩大到全量；否则由上游 CI 负责最终全量门禁：依赖或锁文件、共享测试脚手架、数据库、
+启动链、跨模块生命周期、兼容层、大范围行为改动，或用户明确要求本地全量。
 
 ```bash
 WORKSPACE="${WORKSPACE:?set workspace root}"
@@ -53,10 +77,6 @@ env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" -m pylint app
 git diff --check
 ```
 
-`<workspace>/app.env` 是本机命令 env-file；不得读取、打印、提交或写进公开正文，不要把 env-file 内容拼进命令参数。
-`CONFIG_DIR` 不得从本地运行态环境泄漏进单测；`tests/run.py` 必须零真实出站。若 `python -m pylint app`
-存在与本次无关的基线失败，记录完整边界；不能把未运行写成通过，也不能用局部测试冒充全量测试。
-
 ### 前端 `MoviePilot-Frontend`
 
 运行：
@@ -64,17 +84,21 @@ git diff --check
 ```bash
 yarn typecheck
 yarn lint
-yarn build
 git diff --check
 ```
 
-涉及 UI、权限、路由、接口契约或用户流程时，还要复用或启动本地前后端，通过浏览器确认：
+前端代码改动默认运行 `typecheck`、`lint` 和仓库已有的 focused 测试。依赖、构建配置、路由、资源、
+产物或高风险 UI 改动时再运行 `yarn build`；涉及 UI、权限、路由、接口契约或用户流程时，还要复用或
+启动本地前后端，通过浏览器确认：
 
 - 相关接口正常；
 - 页面无明显控制台错误；
 - 关键交互可完成；
 - 响应式改动覆盖桌面与移动宽度；
 - 截图已脱敏用户名、站点、token、路径及浏览器资料。
+
+在有效源码、依赖锁、测试脚手架和环境边界未改变时复用已有结果；后续改动或非重叠 rebase 只重跑
+被具体变化失效的证据，不因 HEAD 变化机械重跑全部检查。
 
 ### 前后端联动
 
@@ -180,7 +204,7 @@ PR 合并后，若任务要求跟进结果，再回复合并状态与 PR/merge c
 | --- | --- |
 | 从陈旧本地 `v3` 建分支 | 先 fetch，并以 `upstream/v3` 为基线 |
 | 将分支推到 upstream | 只 push `origin`，PR head 使用 `InfinityPacer:<branch>` |
-| 前端只跑 typecheck | 同时跑 lint/build；UI 改动补真实浏览器验证 |
-| 后端局部测试代替全量 | push 前运行 `tests/run.py` |
+| 前端只跑 typecheck | 代码改动至少补 lint；依赖、构建配置、路由、资源、产物或高风险 UI 改动再补 build；UI 改动补真实浏览器验证 |
+| 高风险后端改动只跑局部测试 | 按触发条件在本地运行 `tests/run.py` 和全仓 Pylint；普通改动保留 focused 证据，完整回归由 CI 兜底 |
 | 多行正文使用字面量 `\n` | 使用 `--body-file`，创建后回读 |
 | 为上游 PR 启用 Auto-merge | 停止；合并决定权属于 `jxxghp/*` 维护者 |

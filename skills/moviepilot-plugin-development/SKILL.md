@@ -79,7 +79,7 @@ git checkout -b "${BRANCH}" "${BASE_REF}"
 | --- | --- |
 | 局部插件测试：改动集中在单个插件，且需要快速复现或回归该插件行为 | `pytest tests/<v1\|v2\|v3>/<plugin_id> -q` |
 | A 档覆盖率门禁：个人插件仓改动触及 `plugin_quality.json` 声明的 A 档插件，或需要检查新增行覆盖率 | `scripts/plugin_coverage.py` |
-| 全量回归：跨插件共享脚手架变更、测试基础设施变更、或局部结果不足以覆盖开发风险 | `tests/run.py` |
+| 全量回归：跨插件共享脚手架、测试基础设施、跨代兼容索引、多插件公共行为、局部结果不足，或 PR CI 无法可靠运行 | `tests/run.py` |
 | 新增插件目录：PR 新增 `plugins/`、`plugins.v2/` 或 `plugins.v3/` 插件目录 | `scripts/check_new_plugin_tests.py --base-ref ${BASE_REF}` |
 | 基础文件检查：索引、metadata、版本、JSON、编译或空白敏感改动 | 对应的版本门禁、`json.tool`、`compileall`、`git diff --check` |
 
@@ -147,8 +147,9 @@ git diff --check
 个人插件仓的 A 档覆盖率由 `plugin_quality.json` 显式声明；新增插件不会自动进入 A 档。
 PR 新增插件目录时，必须至少提交对应 `tests/<v1|v2>/<plugin_id>/test_*.py` 并运行新增插件目录检查。
 README、索引说明或 metadata 变更按“基础文件检查”处理；代码、运行态或发布相关变更按上表扩大验证。
-最终全量门禁由 `moviepilot-plugin-delivery` 或 `moviepilot-official-plugin-pr` 执行；同一 HEAD
-已在开发阶段跑过的全量结果可在交付 skill 中复用，后续有任何改动则重新跑。
+普通 PR 的完整回归由目标仓 `Plugin Gate` CI 执行；`moviepilot-plugin-delivery` 或
+`moviepilot-official-plugin-pr` 负责评估尚未完成的交付与发布门禁。在有效源码、后端基线、依赖、
+测试脚手架和环境边界未改变时复用已有结果；后续改动或非重叠 rebase 只重跑被具体变化失效的证据。
 
 ## 4. 本地运行与热加载
 
