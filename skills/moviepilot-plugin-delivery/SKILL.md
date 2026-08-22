@@ -118,7 +118,7 @@ python .github/scripts/check_plugin_versions.py package.json package.v2.json pac
 | --- | --- |
 | 局部插件测试：改动集中在单个插件，且需要快速复现或回归该插件行为 | `pytest tests/<v1\|v2\|v3>/<plugin_id> -q` |
 | A 档覆盖率门禁：目标插件属于 `plugin_quality.json` A 档，或改动触及覆盖率门禁脚本/配置 | `scripts/plugin_coverage.py --base-ref ${BASE_REF}` |
-| 全量回归：PR-only 或发版 PR 前的最终门禁；跨插件共享脚手架、测试基础设施、局部结果不足时必须保留 | `tests/run.py -q` |
+| 全量回归：跨插件共享脚手架、测试基础设施、跨代兼容索引、多插件公共行为、局部结果不足，或 PR CI 无法可靠运行 | `tests/run.py -q` |
 | 新增插件目录：PR 新增 `plugins/`、`plugins.v2/` 或 `plugins.v3/` 插件目录 | `scripts/check_new_plugin_tests.py --base-ref origin/main` |
 | 基础文件检查：版本、索引、README、JSON、编译或空白敏感改动 | 版本门禁、`json.tool`、`compileall`、`git diff --check` |
 
@@ -194,8 +194,11 @@ python scripts/check_new_plugin_tests.py --base-ref origin/main
 `tests/run.py`。个人插件仓的 A 档覆盖率由 `plugin_quality.json` 显式声明；新增插件只先进入最低测试目录门禁，
 不自动进入 A 档覆盖率门禁。
 
-任何失败都要修复或明确报告，不能带失败进入 PR。若同一 HEAD 已在开发阶段完成全量回归且之后
-没有任何改动，可引用该结果；一旦 HEAD、依赖、测试脚手架或环境变量边界变化，重新运行对应门禁。
+普通 PR 和发版 PR 的完整 Python 回归由 `Plugin test gate` CI 执行；本地默认保留受影响插件测试、
+A 档覆盖率和版本、JSON、compile 等受影响门禁。共享边界或上述全量触发条件变化时再本地运行
+`tests/run.py`。任何失败都要修复或明确报告，不能把局部结果冒充全量。验证证据仅在相关源码、
+后端基线、依赖、测试脚手架或环境边界发生实质变化时失效；普通新 commit 或非重叠 rebase 不触发
+机械全量，PR 更新后的 CI 负责重新运行完整门禁。
 
 ## 5. 提交与授权
 

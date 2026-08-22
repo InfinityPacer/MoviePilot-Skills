@@ -43,7 +43,7 @@ git fetch upstream main
 | 场景 | 命令 |
 | --- | --- |
 | 局部插件测试：改动集中在单个插件，且需要快速复现或回归该插件行为 | `pytest tests/<v1\|v2\|v3>/<plugin_id> -q` |
-| 全量回归：准备提交官方仓 PR、跨插件共享脚手架变更、测试基础设施变更、或局部结果不足以覆盖风险 | `tests/run.py` |
+| 全量回归：跨插件共享脚手架、测试基础设施、跨代兼容索引、多插件公共行为、局部结果不足，或上游 PR CI 无法可靠运行 | `tests/run.py` |
 | 新增插件目录：PR 新增 `plugins/`、`plugins.v2/` 或 `plugins.v3/` 插件目录 | 若仓库存在脚本，运行 `scripts/check_new_plugin_tests.py --base-ref upstream/main`；否则确认对应 `tests/<v1\|v2\|v3>/<plugin_id>/test_*.py` 已存在并运行局部/全量测试 |
 | 基础文件检查：索引、metadata、版本、JSON、编译或空白敏感改动 | 版本门禁、`json.tool`、`compileall`、`git diff --check` |
 
@@ -91,8 +91,11 @@ python scripts/check_new_plugin_tests.py --base-ref upstream/main
 
 `<workspace>/app.env` 是本机命令 env-file；不得读取、打印、提交或写进公开正文，不要把 env-file 内容拼进命令参数。
 若仓库不存在某个脚本，记录缺失边界并使用同场景的测试目录检查、局部测试或全量测试兜底。
-若仓库存在 `Plugin release gate` 或同等 PR 检查，本地必须先跑对应脚本。外部服务必须 mock；
-不能用个人插件仓 Release 验证替代官方仓 PR 验证。
+普通官方插件改动默认运行受影响插件测试；新增插件、package、plugin version、metadata 或门禁脚本
+变化时运行对应的新增插件、版本、JSON 或 compile 检查。上游 `Plugin Gate` CI 负责完整
+`tests/run.py`；只有上述全量触发条件、CI 缺失或用户明确要求时才本地全量。外部服务必须 mock；
+不能用个人插件仓 Release 验证替代官方仓 PR 验证。有效源码、后端基线、依赖、测试脚手架和环境
+边界未改变时复用已有证据；普通新 commit 或非重叠 rebase 只重跑被具体变化失效的检查。
 
 ## 3. 提交与授权
 

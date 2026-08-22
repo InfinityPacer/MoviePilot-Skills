@@ -11,7 +11,7 @@
 - `UV_PROJECT_ENVIRONMENT=.venv uv sync --locked --directory MoviePilot`：按 `pyproject.toml` 与 `uv.lock` 安装依赖（Python 3.14+）。
 - `<workspace>/.venv/bin/python -m app.main`：本地启动后端（默认 API `3001`），工作目录为 `MoviePilot/`。
 - 后端与插件单测命令统一见「Testing Guidelines」，不要在本段维护第二套测试入口。
-- `pylint app`：与 CI 一致的静态检查。
+- `pylint app`：后端全量静态检查，仅在高风险改动或明确要求本地全量时运行；普通改动按受影响的 Python 文件运行。
 
 本地 Python 环境：
 - 优先使用工作区根目录解释器 `<workspace>/.venv/bin/python`（Python 3.14+），并以 `MoviePilot/` 作为后端工作目录运行脚本。
@@ -20,8 +20,8 @@
 
 前端（`MoviePilot-Frontend/`）：
 - `yarn && yarn dev`：启动开发服务。
-- `yarn build`：构建产物。
-- `yarn typecheck && yarn lint`：提交前必跑。
+- `yarn build`：在依赖、构建配置、路由、资源、产物或高风险 UI 改动时构建产物。
+- `yarn typecheck && yarn lint`：前端代码改动的默认本地检查。
 - 前端生产 `JS/TS/Vue` 文件遵循 `MoviePilot-Frontend/docs/code-quality.md` 的渐进治理：业务 PR 修改到某个生产文件时，同时审计并修复该文件可安全处理的 ESLint 存量，运行 `yarn lint:suppressions:prune` 裁剪已失效 baseline；不要因此扩改未触及文件或新增 suppression。
 
 ## Task Completion Defaults
@@ -51,7 +51,7 @@
 
 ## Testing Guidelines
 - 后端测试统一放在 `MoviePilot/tests/`，文件名使用 `test_*.py`。
-- 涉及外部服务（TMDB、下载器、媒体服务器、LLM 目录、MP 服务器、任意外链）优先 mock，保证可重复执行；验收标准是全量跑测零真实出站。详见 `MoviePilot/docs/testing.md`。
+- 涉及外部服务（TMDB、下载器、媒体服务器、LLM 目录、MP 服务器、任意外链）优先 mock，保证 focused 测试与 CI 全量测试都可重复且零真实出站。详见 `MoviePilot/docs/testing.md`。
 - 后端单测优先使用单测专用环境 `<workspace>/.venv-test/bin/python`：该环境按 `MoviePilot/pyproject.toml` 与 `uv.lock` 安装依赖，不依赖本地生成的站点扩展资源，能复现 CI / 全新环境，避免本地编译产物和额外包掩盖问题。
 - 测试环境缺失 `app.application.site.sites` 时，由 `MoviePilot/tests/conftest.py` 复用的 `app.testing.bootstrap` 提供最小垫片。重建命令：`uv venv --python 3.14 --clear .venv-test && (cd MoviePilot && uv export --locked --all-groups --format requirements.txt | uv pip sync --python ../.venv-test/bin/python -)`。
 - 插件仓单测放在各插件仓库根 `tests/` 下（**不放插件目录内**：插件按整目录 `copytree` 下发，目录内测试会被带进运行时副本），按目标仓库实际支持的代际目录分组（通常为 `v3/`、`v2/`、`v1/`）；每个插件按 ID 建独立子目录，例如 `tests/v3/<plugin_id>/`，不要把用例文件直接平铺在代际目录下；插件独立目录内的测试文件名使用 `test_*.py`，不再重复插件名前缀。各仓脚手架以目标仓库现有实现为准，不要求跨仓机械相同。没有更近的仓库或目录级 `AGENTS.md` 时，以本基线为准。
@@ -59,7 +59,8 @@
 - 插件单测统一使用 pytest 风格：普通测试函数或测试类均可，断言使用 `assert`；不要新增 `unittest.TestCase`、`unittest.main()` 或 `if __name__ == "__main__"` 测试入口。`unittest.mock` 可继续作为 mock 工具使用，“不用 unittest”指测试组织与执行入口不使用 unittest runner。
 - 插件单测经 `tests/_bootstrap.py` 定位同级 `MoviePilot` 后端并注入 `sys.path`、隔离临时 `CONFIG_DIR` 并建表；`app/testing`（`stub_modules` 等）是主程序与插件仓**共享**的 stub harness，bootstrap 后可 `from app.testing import ...` 复用。不同代可能存在同名包，必须分独立 pytest 会话运行。
 - 插件仓单测必须显式设置 `MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot`，并使用 `<workspace>/.venv-test/bin/python` 运行，避免依赖当前目录层级推导后端路径。
-- 产品代码、共享脚手架、测试基础设施或运行行为改动在提 PR / push 前必须本地跑对应仓库全量并通过：主程序在 `MoviePilot/` 跑 `<workspace>/.venv-test/bin/python tests/run.py`（= pytest 全量、零真实出站）；插件仓跑 `MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot <workspace>/.venv-test/bin/python tests/run.py`，由各仓 runner 按 V3、兼容 V2 和历史代际分组执行。纯文档、说明文本或局部 metadata 变更按实际风险使用更小的可复现检查，不为了形式运行无关全量。
+- 默认按改动选择最小但可信的本地验证：后端运行受影响测试或 focused pytest，插件仓运行受影响代际/插件测试，前端代码改动运行 `typecheck`、`lint` 和仓库已有的 focused 测试，并执行 `git diff --check`。依赖或锁文件、共享测试脚手架、数据库、启动链、跨模块生命周期、兼容层、大范围行为改动，或用户明确要求本地全量时，才扩大到对应仓库全量：主程序在 `MoviePilot/` 跑 `<workspace>/.venv-test/bin/python tests/run.py`，插件仓跑 `MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot <workspace>/.venv-test/bin/python tests/run.py`，由各仓 runner 按 V3、兼容 V2 和历史代际分组执行。PR 的完整回归由 CI 作为最终门禁；本地全量不是每次交付的重复门禁。
+- 在有效源码、依赖锁、测试脚手架和环境边界未改变时复用已有验证；后续改动或非重叠 rebase 只重跑被具体变化失效的证据，不因 HEAD 变化机械重跑全部检查。纯文档、说明文本或局部 metadata 变更继续按实际风险使用更小的可复现检查。
 - 前端改动至少验证 `typecheck`、`lint`，涉及 UI 的 PR 附截图；公开截图前必须脱敏用户名、站点、token、媒体库路径、浏览器资料和其他私有信息。
 
 ## Full-Stack Runtime Verification

@@ -89,25 +89,24 @@ WORKSPACE="${WORKSPACE:?set workspace root}"
 
 ```bash
 WORKSPACE="${WORKSPACE:?set workspace root}"
-(
-  set -a
-  . "${WORKSPACE}/app.env"
-  set +a
-  env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" tests/run.py -q
-)
-
-# 只有断点、顺序污染或覆盖率采集需要单进程时才显式串行。
-(
-  set -a
-  . "${WORKSPACE}/app.env"
-  set +a
-  env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" tests/run.py --serial -q
-)
+if [ -n "${TEST_TARGET:-}" ]; then
+  (
+    set -a
+    . "${WORKSPACE}/app.env"
+    set +a
+    env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" -m pytest "${TEST_TARGET}" -q
+  )
+fi
 ```
 
-外部服务必须 mock；不要把局部测试冒充全量测试。
-最终全量门禁由 `moviepilot-upstream-pr` 执行；同一 HEAD 已在开发阶段跑过的全量结果可在
-PR skill 中复用，后续有任何改动则重新跑。
+默认按改动选择 focused 测试。依赖或锁文件、共享测试脚手架、数据库、启动链、跨模块生命周期、
+兼容层、大范围行为改动，或用户明确要求本地全量时，才在 `MoviePilot/` 运行
+`${WORKSPACE}/.venv-test/bin/python tests/run.py`；只有断点、顺序污染或覆盖率采集需要单进程时才显式
+追加 `--serial`。外部服务必须 mock；不要把局部测试冒充全量测试。
+
+最终全量门禁由 `moviepilot-upstream-pr` 交付流程触发并由上游 CI 执行；本地全量不是每次开发或 PR 的
+重复门禁。在有效源码、依赖锁、测试脚手架和环境边界未改变时复用已有结果；后续改动或非重叠 rebase
+只重跑被具体变化失效的证据，不因 HEAD 变化机械重跑全部检查。
 
 ## 4. 前端开发
 

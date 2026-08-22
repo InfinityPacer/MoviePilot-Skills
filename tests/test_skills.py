@@ -128,8 +128,8 @@ def test_development_skills_allow_authorized_local_commits_but_stop_before_deliv
         assert "gh pr merge" not in skill
         assert "gh issue comment" not in skill
 
-    assert "最终全量门禁由 `moviepilot-upstream-pr` 执行" in main
-    assert "最终全量门禁由 `moviepilot-plugin-delivery` 或 `moviepilot-official-plugin-pr` 执行" in plugin
+    assert "最终全量门禁由 `moviepilot-upstream-pr` 交付流程触发并由上游 CI 执行" in main
+    assert "普通 PR 的完整回归由目标仓 `Plugin Gate` CI 执行" in plugin
     assert "moviepilot-plugin-delivery" in plugin
     assert "moviepilot-official-plugin-pr" in plugin
 
