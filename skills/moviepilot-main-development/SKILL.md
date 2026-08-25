@@ -111,24 +111,23 @@ UV_PROJECT_ENVIRONMENT="${WORKSPACE}/.venv-test" uv sync --locked
 中隐式创建 `MoviePilot/.venv`；缺少 Ruff、Pylint 等开发工具时应同步共享环境，而不是把空环境当成
 项目依赖缺失。
 
-有 Python 文件改动时，默认对改动文件同时运行 Pylint 与 Ruff：
+有 Python 文件改动时，默认对改动文件运行 Pylint：
 
 ```bash
 PYTHON_TARGETS="${PYTHON_TARGETS:-}"
 if [ -n "${PYTHON_TARGETS}" ]; then
   env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" -m pylint ${PYTHON_TARGETS}
-  env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" -m ruff check ${PYTHON_TARGETS}
 fi
 ```
 
-触及 Ruff 架构治理脚本、baseline，或 CI 报告新增 Ruff 诊断时，补跑全仓只降不增门禁：
+有 Python 文件改动时，同时运行 CI 同款的全仓 Ruff 只降不增门禁：
 
 ```bash
 env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" scripts/architecture/ruff_ratchet.py
 ```
 
-新增诊断应修复；不得通过 `--write` 放宽 baseline。只有实际清理存量诊断且需要固化更低水位时，才更新
-baseline 并审计对应 diff。
+新增诊断应修复；既有 baseline 诊断没有增长时不要求当前 PR 顺带清理。不得通过 `--write` 放宽
+baseline；只有实际清理存量诊断且需要固化更低水位时，才更新 baseline 并审计对应 diff。
 
 有 `app/` 下的 Python 改动时，还要运行覆盖全部宿主源码的 mypy 诊断 ratchet；该门禁覆盖尚未进入
 严格类型文件列表的新模块：
