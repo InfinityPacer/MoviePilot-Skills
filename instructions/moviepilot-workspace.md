@@ -53,7 +53,7 @@
 - 后端测试统一放在 `MoviePilot/tests/`，文件名使用 `test_*.py`。
 - 涉及外部服务（TMDB、下载器、媒体服务器、LLM 目录、MP 服务器、任意外链）优先 mock，保证 focused 测试与 CI 全量测试都可重复且零真实出站。详见 `MoviePilot/docs/testing.md`。
 - 后端单测优先使用单测专用环境 `<workspace>/.venv-test/bin/python`：该环境按 `MoviePilot/pyproject.toml` 与 `uv.lock` 安装依赖，不依赖本地生成的站点扩展资源，能复现 CI / 全新环境，避免本地编译产物和额外包掩盖问题。
-- 测试环境缺失 `app.application.site.sites` 时，由 `MoviePilot/tests/conftest.py` 复用的 `app.testing.bootstrap` 提供最小垫片。重建时在工作区根目录执行：`WORKSPACE="$(pwd -P)" && uv venv --python 3.14 --clear "${WORKSPACE}/.venv-test" && (cd "${WORKSPACE}/MoviePilot" && uv export --locked --all-groups --format requirements.txt | uv pip sync --python "${WORKSPACE}/.venv-test/bin/python" -)`。
+- 普通主程序及插件单测由 `MoviePilot/tests/conftest.py` 复用的 `app.testing.bootstrap` 强制安装 `app.application.site.sites` 最小垫片，不加载源码目录中的本机 `.so` / `.pyd`；真实制品只在资源与 ABI 专项验收中加载。重建时在工作区根目录执行：`WORKSPACE="$(pwd -P)" && uv venv --python 3.14 --clear "${WORKSPACE}/.venv-test" && (cd "${WORKSPACE}/MoviePilot" && uv export --locked --no-default-groups --group dev --group runtime-standard --format requirements.txt | uv pip sync --python "${WORKSPACE}/.venv-test/bin/python" -)`。
 - 插件仓单测放在各插件仓库根 `tests/` 下（**不放插件目录内**：插件按整目录 `copytree` 下发，目录内测试会被带进运行时副本），按目标仓库实际支持的代际目录分组（通常为 `v3/`、`v2/`、`v1/`）；每个插件按 ID 建独立子目录，例如 `tests/v3/<plugin_id>/`，不要把用例文件直接平铺在代际目录下；插件独立目录内的测试文件名使用 `test_*.py`，不再重复插件名前缀。各仓脚手架以目标仓库现有实现为准，不要求跨仓机械相同。没有更近的仓库或目录级 `AGENTS.md` 时，以本基线为准。
 - 插件仓 `pytest.ini` 应配置 `addopts = --import-mode=importlib`，避免不同插件独立目录内复用 `test_plugin.py` 等同名测试文件时触发 pytest 默认导入模式的模块名冲突。
 - 插件单测统一使用 pytest 风格：普通测试函数或测试类均可，断言使用 `assert`；不要新增 `unittest.TestCase`、`unittest.main()` 或 `if __name__ == "__main__"` 测试入口。`unittest.mock` 可继续作为 mock 工具使用，“不用 unittest”指测试组织与执行入口不使用 unittest runner。
