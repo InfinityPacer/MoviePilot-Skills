@@ -5,6 +5,7 @@
 - `MoviePilot/`：后端（FastAPI），核心代码在 `app/`，迁移在 `database/versions/`，测试在 `tests/`。
 - `MoviePilot-Frontend/`：前端（Vue3 + Vite），主代码在 `src/`，静态资源在 `public/`。
 - `MoviePilot-Plugins/`：插件集合，插件目录在 `plugins/`、`plugins.v2/` 与 `plugins.v3/`，索引在 `package.json`、`package.v2.json`、`package.v3.json`。
+- `MoviePilot-Rust/`：PyO3 原生扩展，本地开发环境与主程序运行环境独立。
 
 ## Build, Test, and Development Commands
 后端（`MoviePilot/`）：
@@ -17,6 +18,8 @@
 - 优先使用工作区根目录解释器 `<workspace>/.venv/bin/python`（Python 3.14+），并以 `MoviePilot/` 作为后端工作目录运行脚本。
 - 不要使用 `MoviePilot/.venv/bin/python`；后端仓库内不保留独立运行环境，统一使用工作区根 `.venv`，避免解释器版本和依赖状态分叉。
 - PyCharm 运行配置中，解释器应指向工作区根目录 `.venv/bin/python`，工作目录保持 `<workspace>/MoviePilot`。
+- `MoviePilot-Rust/.venv` 可作为 Rust 子仓的独立本地开发环境；当前 V3 开发基线使用 Python 3.14。执行 `maturin develop` 前必须核对该环境的实际 Python 版本，并通过目标环境的 `python -m maturin` 调用，不根据已存在的 `.venv` 推断目标 ABI。
+- cp311、cp314 和 cp314t 的 ABI 专项验证必须分别使用匹配解释器显式执行 `maturin build -i <python>`，并将 wheel 安装到对应的隔离环境中验证；不得用单个 `maturin develop` 环境代替多 ABI 验收。
 
 前端（`MoviePilot-Frontend/`）：
 - `yarn && yarn dev`：启动开发服务。
