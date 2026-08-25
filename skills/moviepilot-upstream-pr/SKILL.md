@@ -54,13 +54,25 @@ if [ -n "${TEST_TARGET:-}" ]; then
 fi
 if [ -n "${PYTHON_TARGETS:-}" ]; then
   env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" -m pylint ${PYTHON_TARGETS}
+  env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" -m ruff check ${PYTHON_TARGETS}
 fi
 git diff --check
 ```
 
 `<workspace>/app.env` 是本机命令 env-file；不得读取、打印、提交或写进公开正文，不要把 env-file 内容拼进命令参数。
 `CONFIG_DIR` 不得从本地运行态环境泄漏进单测；测试必须零真实出站。Pylint 默认只检查改动的 Python
-文件，不能把局部测试或局部静态检查冒充全量结果。
+文件，Ruff 同样默认只检查改动文件；不能把局部测试或局部静态检查冒充全量结果。
+
+触及 Ruff 架构治理脚本、baseline，或 CI 报告新增 Ruff 诊断时，运行与 Architecture Contract Gate
+一致的全仓 ratchet：
+
+```bash
+env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" scripts/architecture/ruff_ratchet.py
+```
+
+修复新增诊断，不得通过 `--write` 放宽 baseline；只有实际清理存量诊断且需要固化更低水位时才更新
+baseline。若共享环境缺少锁定的 Ruff 或 Pylint，先按 `moviepilot-main-development` 同步工作区根
+`.venv-test`，不要在隔离 worktree 中直接用 `uv run --no-sync` 生成空的仓内 `.venv`。
 
 以下情况才在本地扩大到全量；否则由上游 CI 负责最终全量门禁：依赖或锁文件、共享测试脚手架、数据库、
 启动链、跨模块生命周期、兼容层、大范围行为改动，或用户明确要求本地全量。
