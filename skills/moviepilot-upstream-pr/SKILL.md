@@ -74,6 +74,15 @@ env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" scripts/architecture/ruff
 baseline。若共享环境缺少锁定的 Ruff 或 Pylint，先按 `moviepilot-main-development` 同步工作区根
 `.venv-test`，不要在隔离 worktree 中直接用 `uv run --no-sync` 生成空的仓内 `.venv`。
 
+有 `app/` 下的 Python 改动时，运行 CI 同款的全仓 mypy 诊断 ratchet，以覆盖尚未进入严格类型文件
+列表的新模块：
+
+```bash
+env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" scripts/architecture/mypy_ratchet.py
+```
+
+修复新增类型错误，不得通过写入 baseline 为新债务建立豁免。
+
 以下情况才在本地扩大到全量；否则由上游 CI 负责最终全量门禁：依赖或锁文件、共享测试脚手架、数据库、
 启动链、跨模块生命周期、兼容层、大范围行为改动，或用户明确要求本地全量。
 

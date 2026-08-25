@@ -130,6 +130,15 @@ env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" scripts/architecture/ruff
 新增诊断应修复；不得通过 `--write` 放宽 baseline。只有实际清理存量诊断且需要固化更低水位时，才更新
 baseline 并审计对应 diff。
 
+有 `app/` 下的 Python 改动时，还要运行覆盖全部宿主源码的 mypy 诊断 ratchet；该门禁覆盖尚未进入
+严格类型文件列表的新模块：
+
+```bash
+env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" scripts/architecture/mypy_ratchet.py
+```
+
+新增类型错误应在改动文件中修复，不得通过写入 baseline 为新债务建立豁免。
+
 默认按改动选择 focused 测试。依赖或锁文件、共享测试脚手架、数据库、启动链、跨模块生命周期、
 兼容层、大范围行为改动，或用户明确要求本地全量时，才在 `MoviePilot/` 运行
 `${WORKSPACE}/.venv-test/bin/python tests/run.py`；只有断点、顺序污染或覆盖率采集需要单进程时才显式
