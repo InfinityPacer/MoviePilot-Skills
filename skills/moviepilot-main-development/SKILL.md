@@ -99,6 +99,37 @@ if [ -n "${TEST_TARGET:-}" ]; then
 fi
 ```
 
+首次使用共享环境、依赖锁变化或环境缺少锁定工具时，在 `MoviePilot/` 中把工作区根运行环境与测试环境
+同步到当前 `pyproject.toml` 和 `uv.lock`：
+
+```bash
+UV_PROJECT_ENVIRONMENT="${WORKSPACE}/.venv" uv sync --locked
+UV_PROJECT_ENVIRONMENT="${WORKSPACE}/.venv-test" uv sync --locked
+```
+
+只有确认目标环境已同步后才使用 `uv run --locked --no-sync`。不得让该命令在后端仓库或隔离 worktree
+中隐式创建 `MoviePilot/.venv`；缺少 Ruff、Pylint 等开发工具时应同步共享环境，而不是把空环境当成
+项目依赖缺失。
+
+有 Python 文件改动时，默认对改动文件同时运行 Pylint 与 Ruff：
+
+```bash
+PYTHON_TARGETS="${PYTHON_TARGETS:-}"
+if [ -n "${PYTHON_TARGETS}" ]; then
+  env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" -m pylint ${PYTHON_TARGETS}
+  env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" -m ruff check ${PYTHON_TARGETS}
+fi
+```
+
+触及 Ruff 架构治理脚本、baseline，或 CI 报告新增 Ruff 诊断时，补跑全仓只降不增门禁：
+
+```bash
+env -u CONFIG_DIR "${WORKSPACE}/.venv-test/bin/python" scripts/architecture/ruff_ratchet.py
+```
+
+新增诊断应修复；不得通过 `--write` 放宽 baseline。只有实际清理存量诊断且需要固化更低水位时，才更新
+baseline 并审计对应 diff。
+
 默认按改动选择 focused 测试。依赖或锁文件、共享测试脚手架、数据库、启动链、跨模块生命周期、
 兼容层、大范围行为改动，或用户明确要求本地全量时，才在 `MoviePilot/` 运行
 `${WORKSPACE}/.venv-test/bin/python tests/run.py`；只有断点、顺序污染或覆盖率采集需要单进程时才显式
