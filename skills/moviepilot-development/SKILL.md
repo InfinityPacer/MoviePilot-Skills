@@ -10,6 +10,12 @@ description: Use when starting local development, debugging, reproducing issues,
 只判断当前 MoviePilot 工作区开发任务应使用哪个开发 skill。不要复制、概括或自行执行具体
 分支、测试、运行态调试、PR 或发版命令。
 
+## 问题实例
+
+仓库路由前先区分问题发生在当前本地实例、外部用户实例，还是明确构造的实验室复现，并把该分类
+传递给后续开发 skill。仓库位置和本地文件可访问性不会改变证据主体；外部用户反馈不得自动进入
+本机日志、数据库、配置、备份或运行时副本的现场取证流程。
+
 ## 路由
 
 先检查当前仓库、目标文件和 `git remote -v`，再选择：
