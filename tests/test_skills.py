@@ -116,6 +116,38 @@ def test_router_skills_only_route_and_do_not_execute_delivery_work() -> None:
             assert text not in router
 
 
+def test_development_paths_preserve_external_report_evidence_boundaries() -> None:
+    """外部用户现场不得被工作区本机运行态证据替代。"""
+    router = _read_skill("moviepilot-development")
+    main = _read_skill("moviepilot-main-development")
+    plugin = _read_skill("moviepilot-plugin-development")
+    workspace = (REPO_ROOT / "instructions/moviepilot-workspace.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "当前本地实例、外部用户实例，还是明确构造的实验室复现" in router
+    assert "仓库位置和本地文件可访问性不会改变证据主体" in router
+    assert "不得自动进入" in router
+
+    for skill in (main, plugin):
+        normalized_skill = skill.replace("\n", "")
+        assert "## 0. 证据实例边界" in skill
+        assert "不能确认或否定外部现场" in skill
+        assert "也不应仅因可访问就先行检查" in skill
+        assert "本机运行态是合格证据" in skill
+        assert "等价条件、已知差异及结论边界" in normalized_skill
+        assert "保留未知或索取最小证据" in skill
+
+    assert "## External User Reports & Instance Boundaries" in workspace
+    assert "本机日志、数据库、配置和运行态是合格证据" in workspace
+    assert "本工作区的日志、数据库、配置、备份" in workspace
+    assert "不能用其存在、缺失、成功或失败确认或否定用户现场" in workspace
+    assert "结果应标记为实验室证据" in workspace
+    assert "不能单独证明用户实例实际发生过某事件" in workspace
+    assert "以下本地运行态规则只适用于当前本地实例" in workspace
+    assert "不是外部用户现场的默认取证顺序" in workspace
+
+
 def test_development_skills_allow_authorized_local_commits_but_stop_before_delivery() -> None:
     """开发 skill 可按通用 workflow 本地提交，但外部交付仍转 delivery skill。"""
     main = _read_skill("moviepilot-main-development")
