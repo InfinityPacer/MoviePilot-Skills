@@ -1,42 +1,34 @@
 ---
 name: moviepilot-development
-description: Use when starting local development, debugging, reproducing issues, running tests, preparing topic branches, or launching runtime services in the MoviePilot workspace before commit or PR work.
+description: Use for local development, diagnosis, reproduction, testing, runtime debugging, or topic-branch preparation in supported MoviePilot repositories before external delivery. Do not use for push, pull request, merge, or release-only requests.
 ---
 
-# MoviePilot 开发路由
+# MoviePilot 开发
 
-## 作用
+## 范围
 
-只判断当前 MoviePilot 工作区开发任务应使用哪个开发 skill。不要复制、概括或自行执行具体
-分支、测试、运行态调试、PR 或发版命令。
+处理 `MoviePilot`、`MoviePilot-Frontend`、`MoviePilot-Rust`、Wiki、Resources、Server、维护中的
+私有 MoviePilot 上游目标、个人插件仓和官方插件 fork 的本地开发、调试、测试与运行态验证。私有
+目标从全局私有 reference 与当前 remote 解析，不写入本公开 skill；未列入范围的仓库不因名称带有
+`MoviePilot` 就自动套用本 skill。
 
-## 问题实例
+工作区 `AGENTS.md` 和目标仓库更近的说明负责项目结构、环境、测试命令、运行态证据与 Rust ABI
+等事实；本 skill 不复制这些内容。执行前读取适用说明，检查当前仓库、目标文件、工作树和 remote。
+remote 角色按 URL 与仓库身份识别，不按 `origin`、`upstream` 或 `fork` 等本地名称猜测。
 
-仓库路由前先区分问题发生在当前本地实例、外部用户实例，还是明确构造的实验室复现，并把该分类
-传递给后续开发 skill。仓库位置和本地文件可访问性不会改变证据主体；外部用户反馈不得自动进入
-本机日志、数据库、配置、备份或运行时副本的现场取证流程。
+## 开发边界
 
-## 路由
+- 先按工作区规则确认问题主体是本地实例、外部实例还是实验室复现，不用本机状态替代外部现场。
+- 已知会进入评审时，按 remote URL 识别并刷新权威 base，核对 merge-base、base 到 HEAD 的提交范围
+  和分支主题；不满足时保留有效工作并迁到合适的业务 topic branch。跨仓改动分别建立分支、提交
+  和验证。
+- 保留当前任务改动；不混入、reset、stash 或覆盖无关改动。只有无法安全隔离时才使用用户授权的
+  worktree 或询问必要问题。
+- 按受影响路径和更近规则选择最小可信验证；不在 skill 中固化易漂移的命令副本。
+- 本地 commit 服从 `dev-workflow`、已批准计划或当前授权。本 skill 不 push、不创建 PR、不 merge、
+  不发版。
 
-先检查当前仓库、目标文件和 `git remote -v`，再选择：
+## 完成
 
-| 当前工作范围 | 用户常见说法 | 必须转交 |
-| --- | --- | --- |
-| `MoviePilot` | 后端开发、修 bug、跑后端单测、启动后端、调试接口 | `moviepilot-main-development` |
-| `MoviePilot-Frontend` | 前端开发、页面调试、跑前端检查、启动 Vite | `moviepilot-main-development` |
-| `MoviePilot-Plugins` | 个人插件开发、插件单测、本地热加载、插件分支 | `moviepilot-plugin-development` |
-| `MoviePilot-Plugins-Official` | 官方插件仓开发、官方插件 PR 前准备、官方仓门禁 | `moviepilot-plugin-development` |
-
-跨后端、前端、插件联动时，分别使用对应开发 skill；不要把多个仓库改动混入一个开发分支。
-
-## 模糊请求
-
-- 用户只说“开发/调试/复现/跑测试”：先检查当前仓库；当前目录是工作区根时按本次目标文件判断。
-- 用户只说“插件”：先区分 `MoviePilot-Plugins` 与 `MoviePilot-Plugins-Official`，再转插件开发流程。
-- 用户说“PR/发版/提交上游”：改用 `moviepilot-delivery`，不要在开发路由里处理交付。
-- 仓库、remote 或目标仍无法确定：只问一个必要澄清问题，不凭空选择。
-
-## 强制边界
-
-选定后必须加载并完整遵循对应开发 skill。路由 skill 到此结束，不得把“已完成路由”误报为
-已经完成开发、测试、commit、push、PR 或发版。
+说明仓库与分支、改动范围、实际验证、未验证原因类别和工作树状态。需要外部交付时继续使用
+`moviepilot-delivery`，不得把本地开发完成误报为 PR 或发布完成。

@@ -94,6 +94,9 @@
 - 插件代码或运行态改动的验证优先包括：`python -m py_compile` 对源码和运行时副本编译、`python -m json.tool` 校验本次涉及的 `package*.json`、`git diff --check`、旧配置字段/旧文案 `rg` 清理检查，以及一次本地同步、热加载日志或运行时接口验证。纯 README、索引说明、文案或 package metadata 改动按影响面选择 `json.tool`、链接/文本检查、`git diff --check` 等更小闭环即可。
 
 ## Local Secret and Operations Credential Contract
+- `<workspace>/app.env` 可能包含运行凭据和私有配置；命令确需加载时只在受限子进程中 source，
+  不得为了诊断读取或打印内容，不得提交、写入公共文本或拼进命令参数。测试必须继续隔离真实
+  `CONFIG_DIR`。
 - 本地浏览器登录和 SSH 登录统一使用 `$secure-access`；每个 profile 指定一个 1Password item 和明确字段，地址、用户名、密码或私钥在一次 item 读取中解析到内存。
 - 浏览器 profile 使用本地 MoviePilot 登录 item 的 `username`/`password` 字段；SSH profile 使用主机、用户名和认证字段；NAS profile 的地址明确来自 item 顶层 `website` URL，并启用 `sudo`。`notesPlain` 不作为隐式地址或凭据兜底。
 - `.ops/moviepilot/.login` 和 `.ops/moviepilot-server/.ssh` 是已退役的明文凭据位置，不得重新创建、提交、打印、截图或写入日志。新自动化不得支持 file provider、`usr`/`pwd` 历史键名或其他明文 fallback。
@@ -109,9 +112,9 @@
 - 已被 `.gitignore` 或仓库 ignore 规则显式忽略的文件视为本地或派生产物，默认不纳入 git，也不需要反复询问是否提交；只有维护者明确要求 version/force-add 时才处理。
 - GitHub 操作默认先直接使用 `gh`
 - commit、push、PR、release 权限以当前适用的 workflow/delivery skill、本轮用户明确授权、Goal 或已批准 plan 边界为准；这些事实源已授权时不要二次确认，未授权时 commit 或 push 前先获得维护者确认。
-- 主程序后端或前端向上游提交 PR 时，必须使用 `moviepilot-upstream-pr` skill。
-- 插件发版时必须使用 `moviepilot-plugin-delivery` skill；V3 专用改动进入 `plugins.v3/`，V1/V2 仅在明确要求兼容或维护历史实现时修改对应目录。
-- 当前只维护 v3：主程序前后端 PR 目标为上游 `v3`，插件仓发布目标为 `main`。
+- MoviePilot 各仓本地开发、调试和测试使用 `moviepilot-development` skill；push、PR、merge 和发版使用 `moviepilot-delivery` skill。
+- 插件 V3 专用改动进入 `plugins.v3/`，V1/V2 仅在明确要求兼容或维护历史实现时修改对应目录。
+- 当前只维护 v3：主程序后端、前端与 Rust PR 目标为上游 `v3`，插件仓发布目标为 `main`。
 
 ## Official Wiki Alignment (Important)
 以下约束以官方 Wiki 为准（`wiki.movie-pilot.org`）：

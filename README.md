@@ -20,13 +20,11 @@ test -r ../AGENTS.md
 
 | Skill | 用途 |
 | --- | --- |
-| `moviepilot-development` | 开发、调试、跑测试请求的仓库路由 |
-| `moviepilot-main-development` | `MoviePilot` 后端与 `MoviePilot-Frontend` 前端本地开发 |
-| `moviepilot-plugin-development` | 个人插件仓与官方插件 fork 的本地开发、测试和热加载调试 |
-| `moviepilot-delivery` | PR、发版、发布请求的仓库路由 |
-| `moviepilot-upstream-pr` | `InfinityPacer/MoviePilot*` fork 到 `jxxghp/*:v3` 的上游 PR |
-| `moviepilot-official-plugin-pr` | `MoviePilot-Plugins-Official` fork 到 `jxxghp/MoviePilot-Plugins:main` 的官方插件 PR |
-| `moviepilot-plugin-delivery` | 个人插件仓 PR-only、发版、Auto-merge 和必要回查 |
+| `moviepilot-development` | 后端、前端、Rust 与插件仓的本地开发、调试和测试边界 |
+| `moviepilot-delivery` | fork-first 上游 PR、合并与个人插件 PR-only/发版终态 |
+
+稳定项目事实和测试命令由工作区或目标仓库 `AGENTS.md` 维护；skill 只保留触发、授权、路由和
+非显然状态转换，避免复制易漂移的命令说明。
 
 ## 验证
 
@@ -35,25 +33,13 @@ pytest -q
 git diff --check
 SKILL_CREATOR_DIR="${SKILL_CREATOR_DIR:?set skill-creator skill directory}"
 python "${SKILL_CREATOR_DIR}/scripts/quick_validate.py" skills/moviepilot-development
-python "${SKILL_CREATOR_DIR}/scripts/quick_validate.py" skills/moviepilot-main-development
-python "${SKILL_CREATOR_DIR}/scripts/quick_validate.py" skills/moviepilot-plugin-development
 python "${SKILL_CREATOR_DIR}/scripts/quick_validate.py" skills/moviepilot-delivery
-python "${SKILL_CREATOR_DIR}/scripts/quick_validate.py" skills/moviepilot-upstream-pr
-python "${SKILL_CREATOR_DIR}/scripts/quick_validate.py" skills/moviepilot-official-plugin-pr
-python "${SKILL_CREATOR_DIR}/scripts/quick_validate.py" skills/moviepilot-plugin-delivery
 ```
 
 ## 同步
 
 ```bash
-for skill in \
-  moviepilot-development \
-  moviepilot-main-development \
-  moviepilot-plugin-development \
-  moviepilot-delivery \
-  moviepilot-upstream-pr \
-  moviepilot-official-plugin-pr \
-  moviepilot-plugin-delivery
+for skill in moviepilot-development moviepilot-delivery
 do
   rsync -a --delete "skills/${skill}/" "${HOME}/.codex/skills/${skill}/"
   rsync -a --delete "skills/${skill}/" "${HOME}/.claude/skills/${skill}/"
@@ -61,3 +47,25 @@ do
   diff -qr "skills/${skill}" "${HOME}/.claude/skills/${skill}"
 done
 ```
+
+首次从旧版迁移时，将五个退休 skill 的 Codex / Claude 安装目录移到 Trash，再确认运行时只暴露
+两个入口：
+
+```bash
+for skill in \
+  moviepilot-main-development \
+  moviepilot-plugin-development \
+  moviepilot-upstream-pr \
+  moviepilot-official-plugin-pr \
+  moviepilot-plugin-delivery
+do
+  for root in "${HOME}/.codex/skills" "${HOME}/.claude/skills"
+  do
+    if [ -e "${root}/${skill}" ]; then
+      /usr/bin/trash "${root}/${skill}"
+    fi
+  done
+done
+```
+
+该迁移可从 Trash 恢复；同步后重新运行 `diff -qr` parity 检查。
