@@ -19,12 +19,15 @@
 
 ## 跟踪与合并
 
-PR 创建不是默认终态。跟踪 required checks、review 和 mergeability；pending 或 failed checks、required
-review、冲突和 merge method 限制是交付状态，不是权限事实失效。
+PR 创建不是默认终态。先回读 active Ruleset、branch protection、required checks/reviews、当前 head SHA
+和 mergeability。只等待平台真正要求，或结果可能实质改变当前 PR 合并判断的 checks/review。
 
-门禁满足后，本轮授权允许合并且全局维护者 reference 已记录该账号对精确目标具有正向能力时，
-通过 GitHub PR 显式 merge，并用 head SHA 防止合并陈旧版本。不要启用 Auto-merge，不用 `--admin`
-绕过保护。若正常 merge 返回明确权限拒绝，使该能力事实失效并查询一次；不要改成直接 push 上游。
+已证实与当前改动无关且未被其加重或重新触达的 base/上游既有问题、无关自动化/基础设施/配额故障，
+或错误、不可达、低价值的 Review 反馈，不修复、不等待，也无需再次询问维护者；本轮已有 merge 授权
+且平台允许正常 merge 时继续交付。
+平台允许正常 merge 且当前 HEAD 没有本次改动造成的未解决实质问题时，通过 GitHub PR 显式 merge，
+并用 head SHA 防止合并陈旧版本。不要启用 Auto-merge，不用 `--admin` 绕过保护。若正常 merge 返回
+明确权限拒绝，使该能力事实失效并查询一次；不要改成直接 push 上游。
 
 只有本轮明确要求 PR 创建后停止、等待其他维护者，或更近规则保留最终处置权时，PR 创建并回读才是
 终态。合并后回读 merged commit；工作树允许时再 fast-forward 本地 base，不 stash、reset 或覆盖用户
