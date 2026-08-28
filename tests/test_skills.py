@@ -98,9 +98,17 @@ def test_delivery_reuses_stable_capability_but_keeps_authorization_separate() ->
     assert "fork-first" in delivery
     assert "不允许直接 push 默认分支" in delivery
     assert "force push 只有维护者明确授权" in delivery
+    assert "以下判断只适用于 `jxxghp/*` 上游路由" in delivery
+    assert "个人插件路径服从 `personal-plugin.md` 的独立门禁" in delivery
+    assert "普通 CI 和 Review 状态只是交付信号" in delivery
+    assert "不因名称、颜色或来源自动成为门禁" in delivery
+    assert "未被其加重或重新触达的 base/上游既有问题" in delivery
+    assert "不可操作的 Review 反馈" in delivery
+    assert "无需再次询问维护者" in delivery
+    assert "平台实际阻止正常 merge" in delivery
 
 
-def test_upstream_pr_is_fork_first_and_explicitly_merged_after_gates() -> None:
+def test_upstream_pr_is_fork_first_and_explicitly_merged_after_signal_triage() -> None:
     upstream = _read(
         SKILLS_ROOT / "moviepilot-delivery/references/upstream-pr.md"
     )
@@ -108,7 +116,14 @@ def test_upstream_pr_is_fork_first_and_explicitly_merged_after_gates() -> None:
     assert "`InfinityPacer/*` fork" in upstream
     assert "`jxxghp/*`" in upstream
     assert "topic branch" in upstream
-    assert "required checks、review 和 mergeability" in upstream
+    assert "active Ruleset、branch protection、required checks/reviews" in upstream
+    assert "只等待平台真正要求" in upstream
+    assert "可能实质改变当前 PR 合并判断" in upstream
+    assert "未被其加重或重新触达的 base/上游既有问题" in upstream
+    assert "不修复、不等待" in upstream
+    assert "无需再次询问维护者" in upstream
+    assert "平台允许正常 merge" in upstream
+    assert "本次改动造成的未解决实质问题" in upstream
     assert "显式 merge" in upstream
     assert "head SHA" in upstream
     assert "不要启用 Auto-merge" in upstream
@@ -142,6 +157,9 @@ def test_personal_plugin_preserves_pr_only_and_release_terminal_states() -> None
     assert "不绕过门禁" in personal
     assert "Required Check 未出现时作为治理阻塞" in personal
     assert "不在普通交付中创建或修改 Ruleset" in compact_personal
+
+    delivery = _skill("moviepilot-delivery")
+    assert "个人插件路径服从 `personal-plugin.md` 的独立门禁" in delivery
 
 
 def test_issue_linkage_progress_and_final_reply_contract_is_preserved() -> None:
