@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import tempfile
@@ -247,12 +248,27 @@ def test_all_skill_markdown_bash_blocks_are_copy_safe() -> None:
 def test_readme_syncs_two_skills_and_retires_old_installs_via_trash() -> None:
     readme = _read(REPO_ROOT / "README.md")
 
-    assert "for skill in moviepilot-development moviepilot-delivery" in readme
-    assert "rsync -a --delete" in readme
-    assert "diff -qr" in readme
+    catalog = json.loads(_read(REPO_ROOT / "skill-catalog.json"))
+    assert catalog["install_targets"] == {"codex": "../.agents/skills"}
+    active = {
+        entry["name"] for entry in catalog["skills"] if entry["status"] == "active"
+    }
+    retired = {
+        entry["name"] for entry in catalog["skills"] if entry["status"] == "retired"
+    }
+    assert active == EXPECTED_SKILLS
+    assert retired == RETIRED_SKILLS
+    assert all(entry["install_targets"] == ["codex"] for entry in catalog["skills"])
+    assert "skill-catalog.json" in readme
+    assert "--catalog skill-catalog.json --source-root skills" in readme
+    assert "--target codex --check" in readme
+    assert "--target claude" not in readme
+    assert "不进入用户级全局 skill 目录" in readme
     assert "/usr/bin/trash" in readme
     assert "可从 Trash 恢复" in readme
     for name in RETIRED_SKILLS:
+        assert name in readme
+    for name in EXPECTED_SKILLS:
         assert name in readme
 
 

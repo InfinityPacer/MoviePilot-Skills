@@ -1,6 +1,6 @@
 # MoviePilot Skills
 
-MoviePilot 工作区的 Codex / Claude Code skill 与工作区指令事实源。先改本仓，通过验证后再同步安装副本。
+MoviePilot 工作区的 Codex skill 与工作区指令事实源。先改本仓，通过验证后再同步安装副本。
 
 ## Workspace Instructions
 
@@ -38,21 +38,23 @@ python "${SKILL_CREATOR_DIR}/scripts/quick_validate.py" skills/moviepilot-delive
 
 ## 同步
 
+`skill-catalog.json` 是本仓的同步事实源。使用个人 skill 仓库提供的通用同步工具，并显式传入本仓
+catalog 和 source root。Codex 安装到工作区 `../.agents/skills`；两个 MoviePilot workflow skill
+不进入用户级全局 skill 目录，也不再同步 Claude 副本。
+
 ```bash
-for skill in moviepilot-development moviepilot-delivery
-do
-  rsync -a --delete "skills/${skill}/" "${HOME}/.codex/skills/${skill}/"
-  rsync -a --delete "skills/${skill}/" "${HOME}/.claude/skills/${skill}/"
-  diff -qr "skills/${skill}" "${HOME}/.codex/skills/${skill}"
-  diff -qr "skills/${skill}" "${HOME}/.claude/skills/${skill}"
-done
+SKILL_SYNC_TOOL="${SKILL_SYNC_TOOL:?set path to personal-agent-skills/tools/sync_skills.py}"
+python3 "$SKILL_SYNC_TOOL" --catalog skill-catalog.json --source-root skills --target codex
+python3 "$SKILL_SYNC_TOOL" --catalog skill-catalog.json --source-root skills --target codex --check
 ```
 
-首次从旧版迁移时，将五个退休 skill 的 Codex / Claude 安装目录移到 Trash，再确认运行时只暴露
-两个入口：
+首次迁移到工作区 scope 时，将两个当前 skill 和五个退休名称的用户级全局目录移到 Trash，再
+确认它们只在 MoviePilot 工作区暴露：
 
 ```bash
 for skill in \
+  moviepilot-development \
+  moviepilot-delivery \
   moviepilot-main-development \
   moviepilot-plugin-development \
   moviepilot-upstream-pr \
@@ -68,4 +70,4 @@ do
 done
 ```
 
-该迁移可从 Trash 恢复；同步后重新运行 `diff -qr` parity 检查。
+先完成工作区同步和 parity 检查再清理；该迁移可从 Trash 恢复。
