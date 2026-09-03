@@ -64,7 +64,7 @@ def test_skill_surface_uses_progressive_disclosure() -> None:
         assert f"]({relative.as_posix()})" in delivery
 
 
-def test_development_uses_workspace_facts_without_copying_command_catalogs() -> None:
+def test_development_routes_workspace_evidence_only_when_relevant() -> None:
     development = _skill("moviepilot-development")
 
     for repository in (
@@ -79,10 +79,17 @@ def test_development_uses_workspace_facts_without_copying_command_catalogs() -> 
         assert repository in development
     assert "工作区 `AGENTS.md`" in development
     assert "本 skill 不复制" in development
-    assert "remote 角色按 URL 与仓库身份识别" in development
-    assert "按 remote URL 识别并刷新权威 base" in development
-    assert "核对 merge-base、base 到 HEAD 的提交范围" in development
-    assert "保留有效工作并迁到合适的业务 topic branch" in development
+    assert "确认当前仓库、目标文件和工作树" in development
+    assert "只有任务\n需要识别权威基线、交付路由或处理已知基线漂移时才检查 remote" in development
+    assert "不因本 skill 被调用就检查 remote、刷新\n  base、计算 merge-base 或探测运行态" in development
+    assert "纯源码、测试、文档和静态配置改动不把本机服务状态当作独立前置检查" in development
+    assert "只有权威 base 是否漂移会影响当前实现\n  或交付准备时" in development
+    assert "才按 remote URL 刷新 base" in development
+    assert "只有任务需要运行态诊断或验收、静态证据不足，或者端口/进程冲突影响当前下一步时" in development
+    assert "现有运行态不是普通开发的独立证据门" in development
+    assert "组合根、canonical package ownership 和依赖装配是任务相关的架构不变量" in development
+    assert "不对普通局部改动另做\n  所有权审计" in development
+    assert "保留有效工作并迁移" in development
     assert "本 skill 不 push、不创建 PR、不 merge" in development
     assert "moviepilot-delivery" in development
     assert not _bash_blocks(development)
