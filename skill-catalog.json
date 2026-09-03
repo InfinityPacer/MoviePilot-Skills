@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "install_targets": {
+    "codex": "../.agents/skills"
+  },
+  "skills": [
+    {
+      "install_targets": ["codex"],
+      "name": "moviepilot-delivery",
+      "ownership": "owned",
+      "retired_names": [
+        "moviepilot-official-plugin-pr",
+        "moviepilot-plugin-delivery",
+        "moviepilot-upstream-pr"
+      ],
+      "status": "active",
+      "sync_group": "moviepilot"
+    },
+    {
+      "install_targets": ["codex"],
+      "name": "moviepilot-development",
+      "ownership": "owned",
+      "retired_names": [
+        "moviepilot-main-development",
+        "moviepilot-plugin-development"
+      ],
+      "status": "active",
+      "sync_group": "moviepilot"
+    },
+    {
+      "install_targets": ["codex"],
+      "name": "moviepilot-main-development",
+      "ownership": "owned",
+      "replacement": "moviepilot-development",
+      "status": "retired",
+      "sync_group": "moviepilot"
+    },
+    {
+      "install_targets": ["codex"],
+      "name": "moviepilot-plugin-development",
+      "ownership": "owned",
+      "replacement": "moviepilot-development",
+      "status": "retired",
+      "sync_group": "moviepilot"
+    },
+    {
+      "install_targets": ["codex"],
+      "name": "moviepilot-official-plugin-pr",
+      "ownership": "owned",
+      "replacement": "moviepilot-delivery",
+      "status": "retired",
+      "sync_group": "moviepilot"
+    },
+    {
+      "install_targets": ["codex"],
+      "name": "moviepilot-plugin-delivery",
+      "ownership": "owned",
+      "replacement": "moviepilot-delivery",
+      "status": "retired",
+      "sync_group": "moviepilot"
+    },
+    {
+      "install_targets": ["codex"],
+      "name": "moviepilot-upstream-pr",
+      "ownership": "owned",
+      "replacement": "moviepilot-delivery",
+      "status": "retired",
+      "sync_group": "moviepilot"
+    }
+  ]
+}

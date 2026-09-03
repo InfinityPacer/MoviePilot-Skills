@@ -6,6 +6,7 @@
 - `MoviePilot-Frontend/`：前端（Vue3 + Vite），主代码在 `src/`，静态资源在 `public/`。
 - `MoviePilot-Plugins/`：插件集合，插件目录在 `plugins/`、`plugins.v2/` 与 `plugins.v3/`，索引在 `package.json`、`package.v2.json`、`package.v3.json`。
 - `MoviePilot-Rust/`：PyO3 原生扩展，本地开发环境与主程序运行环境独立。
+- `MoviePilot-Skills/`：工作区指令与专属 skill 的事实源；本仓不适用 `moviepilot-development` 或 `moviepilot-delivery`。
 
 ## Build, Test, and Development Commands
 后端（`MoviePilot/`）：
@@ -112,7 +113,7 @@
 - 已被 `.gitignore` 或仓库 ignore 规则显式忽略的文件视为本地或派生产物，默认不纳入 git，也不需要反复询问是否提交；只有维护者明确要求 version/force-add 时才处理。
 - GitHub 操作默认先直接使用 `gh`
 - commit、push、PR、release 权限以当前适用的 workflow/delivery skill、本轮用户明确授权、Goal 或已批准 plan 边界为准；这些事实源已授权时不要二次确认，未授权时 commit 或 push 前先获得维护者确认。
-- MoviePilot 各仓本地开发、调试和测试使用 `moviepilot-development` skill；push、PR、merge 和发版使用 `moviepilot-delivery` skill。
+- 上述 MoviePilot 产品代码仓本地开发、调试和测试使用 `moviepilot-development` skill；push、PR、merge 和发版使用 `moviepilot-delivery` skill。`MoviePilot-Skills` 明确排除。
 - 插件 V3 专用改动进入 `plugins.v3/`，V1/V2 仅在明确要求兼容或维护历史实现时修改对应目录。
 - 当前只维护 v3：主程序后端、前端与 Rust PR 目标为上游 `v3`，插件仓发布目标为 `main`。
 
