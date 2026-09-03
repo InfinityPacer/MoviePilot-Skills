@@ -280,6 +280,8 @@ def test_workspace_instruction_source_and_runtime_link_are_documented() -> None:
     assert "moviepilot-development" in workspace
     assert "moviepilot-delivery" in workspace
     assert "push、PR、merge 和发版" in workspace
+    assert "MoviePilot-Skills` 明确排除" in workspace
+    assert "本仓不适用 `moviepilot-development` 或 `moviepilot-delivery`" in workspace
     assert "后端、前端与 Rust PR 目标为上游 `v3`" in workspace
     assert "instructions/moviepilot-workspace.md" in readme
     assert "MoviePilot-Skills/instructions/moviepilot-workspace.md" in readme
