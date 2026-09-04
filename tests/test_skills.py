@@ -83,7 +83,8 @@ def test_development_routes_workspace_evidence_only_when_relevant() -> None:
     ):
         assert repository in development
     assert "工作区 `AGENTS.md`" in development
-    assert "`product-development`" in development
+    assert "工作区 Git 规则" in development
+    assert "工作区授权规则" in development
     assert "本 skill 不复制" in development
     assert "确认当前仓库、目标文件和工作树" in development
     assert "只有任务\n需要识别权威基线、交付路由或处理已知基线漂移时才检查 remote" in development
@@ -108,7 +109,7 @@ def test_delivery_reuses_stable_capability_but_keeps_authorization_separate() ->
     assert "github-maintainer-context.md" in delivery
     assert "直接复用" in delivery
     assert "不在每个 PR 前查询 `viewerPermission`" in delivery
-    assert "重查遵循 `product-development`" in delivery
+    assert "重查遵循工作区 GitHub 权限规则" in delivery
     assert "fork-first" in delivery
     assert "不允许直接 push 默认分支" in delivery
     assert "force push 只有维护者明确授权" in delivery
@@ -252,15 +253,15 @@ def test_retired_skill_names_are_absent_from_active_instruction_surfaces() -> No
         assert name not in active
 
 
-def test_workspace_extends_global_lifecycle_without_reintroducing_optional_gates() -> None:
+def test_workspace_owns_lifecycle_without_reintroducing_optional_gates() -> None:
     workspace = _read(REPO_ROOT / "instructions/moviepilot-workspace.md")
     readme = _read(REPO_ROOT / "README.md")
 
-    assert "全局 `product-development` 生命周期" in workspace
-    assert "同时使用 `frontend-development`" in workspace
+    assert "MoviePilot 项目规则由本文件和目标仓库更近说明共同定义" in workspace
+    assert "视觉行为验证实际渲染面" in workspace
     assert "不创建独立 Goal、Checkpoint、Review 或 CI 控制面" in workspace
     assert "optional check 或 pending 自动化不自动成为门禁" in workspace
-    assert "全局 `product-development` 为生命周期" in readme
+    assert "工作区指令负责通用产品生命周期和可见界面或交互验证" in readme
 
 
 def test_all_skill_markdown_bash_blocks_are_copy_safe() -> None:
