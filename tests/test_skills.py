@@ -260,8 +260,6 @@ def test_workspace_extends_global_lifecycle_without_reintroducing_optional_gates
     assert "同时使用 `frontend-development`" in workspace
     assert "不创建独立 Goal、Checkpoint、Review 或 CI 控制面" in workspace
     assert "optional check 或 pending 自动化不自动成为门禁" in workspace
-    assert "UI PR 不默认生成或附带截图" in workspace
-    assert "截图或 snapshot 能证明" not in workspace
     assert "全局 `product-development` 为生命周期" in readme
 
 

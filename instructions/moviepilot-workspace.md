@@ -66,7 +66,7 @@
 - 插件仓单测必须显式设置 `MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot`，并使用 `<workspace>/.venv-test/bin/python` 运行，避免依赖当前目录层级推导后端路径。
 - 默认按改动选择最小但可信的本地验证：后端运行受影响测试或 focused pytest，插件仓运行受影响代际/插件测试，前端代码改动运行 `typecheck`、`lint` 和仓库已有的 focused 测试，并执行 `git diff --check`。依赖或锁文件、共享测试脚手架、数据库、启动链、跨模块生命周期、兼容层、大范围行为改动，或用户明确要求本地全量时，才扩大到对应仓库全量：主程序在 `MoviePilot/` 跑 `<workspace>/.venv-test/bin/python tests/run.py`，插件仓跑 `MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot <workspace>/.venv-test/bin/python tests/run.py`，由各仓 runner 按 V3、兼容 V2 和历史代际分组执行。PR 是否阻断交付由目标仓库的 required checks/Ruleset、平台真实限制和本次改动拥有的实质问题决定；普通 full regression、optional check 或 pending 自动化不自动成为门禁，本地全量也不是每次交付的重复门禁。
 - 在有效源码、依赖锁、测试脚手架和环境边界未改变时复用已有验证；后续改动或非重叠 rebase 只重跑被具体变化失效的证据，不因 HEAD 变化机械重跑全部检查。纯文档、说明文本或局部 metadata 变更继续按实际风险使用更小的可复现检查。
-- 前端改动至少验证 `typecheck`、`lint`；视觉行为按 `frontend-development` 验证实际渲染面。UI PR 不默认生成或附带截图，只有用户明确要求时才处理。
+- 前端改动至少验证 `typecheck`、`lint`；视觉行为按 `frontend-development` 验证实际渲染面。
 
 ## External User Reports & Instance Boundaries
 - 诊断前先标明被判断的实例、部署、镜像或版本以及相关时间窗口，并区分源码可达性、目标现场事实和实验室复现结果。
