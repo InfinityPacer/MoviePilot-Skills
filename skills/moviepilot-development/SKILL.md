@@ -23,7 +23,7 @@ description: Use for local development, diagnosis, reproduction, testing, runtim
   base、计算 merge-base 或探测运行态。
 - 只有任务涉及实例行为、现场诊断或实验室复现时，才按工作区规则确认问题主体并使用对应证据；
   纯源码、测试、文档和静态配置改动不把本机服务状态当作独立前置检查。
-- 已知会进入评审时按 `product-development` 选择业务 topic branch。只有权威 base 是否漂移会影响当前实现
+- 已知会进入评审时按工作区 Git 规则选择业务 topic branch。只有权威 base 是否漂移会影响当前实现
   或交付准备时，才按 remote URL 刷新 base，并核对 merge-base、base 到 HEAD 的提交范围和分支
   主题；不满足时保留有效工作并迁移。跨仓改动分别建立分支、提交和验证。
 - 只有任务需要运行态诊断或验收、静态证据不足，或者端口/进程冲突影响当前下一步时，才探测并
@@ -34,7 +34,7 @@ description: Use for local development, diagnosis, reproduction, testing, runtim
 - 保留当前任务改动；不混入、reset、stash 或覆盖无关改动。只有无法安全隔离时才使用用户授权的
   worktree 或询问必要问题。
 - 按受影响路径和更近规则选择最小可信验证；不在 skill 中固化易漂移的命令副本。
-- 本地 commit 服从 `product-development`、已批准计划或当前授权。本 skill 不 push、不创建 PR、不 merge、
+- 本地 commit 服从工作区授权规则、已批准计划或当前授权。本 skill 不 push、不创建 PR、不 merge、
   不发版。
 
 ## 完成
