@@ -8,8 +8,8 @@ description: Use for commit-and-publish, push, pull request creation or follow-u
 ## 范围与授权
 
 先建立用户要求的终态：本地 commit、上游 PR 创建、PR 跟踪并合并、个人插件 PR-only，或个人插件
-发版。commit、push、PR、merge、release 和公开回复分别服从 `dev-workflow`、已批准计划、Goal 或
-当前用户授权；账户能力不构成当前任务授权。
+发版。commit、push、PR、merge、release 和公开回复分别服从 `product-development`、已批准计划、
+Goal/Task 或当前用户授权；账户能力不构成当前任务授权。
 
 检查当前仓库、remote、分支、base、提交范围、验证证据和工作树。remote 角色按 URL 与仓库身份
 识别，不按本地名称猜测。跨仓改动分别交付，不混成一个 PR。
@@ -18,7 +18,7 @@ description: Use for commit-and-publish, push, pull request creation or follow-u
 
 权限路径不明时，先读取全局 Codex 指令链接的私有 `github-maintainer-context.md`。对其中同一账号
 和精确目标仓已记录的正向能力直接复用，不在每个 PR 前查询 `viewerPermission`；能力失效、权限
-拒绝和未知能力的重查遵循 `dev-workflow`。
+拒绝和未知能力的重查遵循 `product-development`。
 
 所有面向 `jxxghp/*` 的 MoviePilot 贡献固定使用 `InfinityPacer/*` fork topic branch 和 Pull
 Request，即使上游具有 `WRITE`。权限只决定能否执行平台允许的正常 merge，不改变 fork-first 拓扑，
@@ -28,7 +28,7 @@ Request，即使上游具有 `WRITE`。权限只决定能否执行平台允许�
 ## jxxghp 上游 Checks 与 Review
 
 以下判断只适用于 `jxxghp/*` 上游路由；个人插件路径服从 `personal-plugin.md` 的独立门禁。
-普通 CI 和 Review 状态只是交付信号，不因名称、颜色或来源自动成为门禁。按 `dev-workflow` 排除与
+普通 CI 和 Review 状态只是交付信号，不因名称、颜色或来源自动成为门禁。按 `product-development` 排除与
 当前改动无关且未被其加重或重新触达的 base/上游既有问题、无关自动化/基础设施/配额故障，以及
 不可操作的 Review 反馈；已有 merge 授权且平台允许正常 merge 时无需再次询问维护者。
 平台实际阻止正常 merge 或当前改动存在未解决的实质问题时才阻塞；不得据此使用 `--admin` 绕过
@@ -47,7 +47,7 @@ Request，即使上游具有 `WRITE`。权限只决定能否执行平台允许�
 ## 公共文本与完成
 
 PR 标题、正文和 issue/review 回复默认使用中文，commit subject 使用简洁英文 Conventional
-Commit。应用 `dev-workflow` 的隐私与 PR 沟通契约；私有仓名和维护者 capability reference 只用于
+Commit。应用 `product-development` 的公开交付与 PR 沟通契约；私有仓名和维护者 capability reference 只用于
 内部判断，不写入无关公共文本。
 
 多行 PR、issue 和 review/comment 正文使用 body file 或其他能保留真实换行的结构化输入，不发布

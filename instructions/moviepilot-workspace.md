@@ -29,6 +29,7 @@
 - 前端生产 `JS/TS/Vue` 文件遵循 `MoviePilot-Frontend/docs/code-quality.md` 的渐进治理：业务 PR 修改到某个生产文件时，同时审计并修复该文件可安全处理的 ESLint 存量，运行 `yarn lint:suppressions:prune` 裁剪已失效 baseline；不要因此扩改未触及文件或新增 suppression。
 
 ## Task Completion Defaults
+- MoviePilot 项目规则叠加在全局 `product-development` 生命周期之上；可见前端或交互结果变化时同时使用 `frontend-development`。本文件不创建独立 Goal、Checkpoint、Review 或 CI 控制面。
 - 先完成用户指定的 MoviePilot 目标，再按改动类型选择最小但可信的验证闭环。不要为了覆盖所有可能检查而扩大到无关仓库、无关插件或无关运行态。
 - 后端、前端、插件、文档或交付流程分别按本文件对应章节验证；若服务、凭据、外部依赖或登录态不可用，说明阻塞类别、已完成的本地证据和剩余风险。
 - 涉及发布、PR、issue 回复、公开截图或日志摘录时，最终交付前做一次隐私审查，确保公开内容只包含维护者可复现或可判断的信息。
@@ -63,9 +64,9 @@
 - 插件单测统一使用 pytest 风格：普通测试函数或测试类均可，断言使用 `assert`；不要新增 `unittest.TestCase`、`unittest.main()` 或 `if __name__ == "__main__"` 测试入口。`unittest.mock` 可继续作为 mock 工具使用，“不用 unittest”指测试组织与执行入口不使用 unittest runner。
 - 插件单测经 `tests/_bootstrap.py` 定位同级 `MoviePilot` 后端并注入 `sys.path`、隔离临时 `CONFIG_DIR` 并建表；`app/testing`（`stub_modules` 等）是主程序与插件仓**共享**的 stub harness，bootstrap 后可 `from app.testing import ...` 复用。不同代可能存在同名包，必须分独立 pytest 会话运行。
 - 插件仓单测必须显式设置 `MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot`，并使用 `<workspace>/.venv-test/bin/python` 运行，避免依赖当前目录层级推导后端路径。
-- 默认按改动选择最小但可信的本地验证：后端运行受影响测试或 focused pytest，插件仓运行受影响代际/插件测试，前端代码改动运行 `typecheck`、`lint` 和仓库已有的 focused 测试，并执行 `git diff --check`。依赖或锁文件、共享测试脚手架、数据库、启动链、跨模块生命周期、兼容层、大范围行为改动，或用户明确要求本地全量时，才扩大到对应仓库全量：主程序在 `MoviePilot/` 跑 `<workspace>/.venv-test/bin/python tests/run.py`，插件仓跑 `MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot <workspace>/.venv-test/bin/python tests/run.py`，由各仓 runner 按 V3、兼容 V2 和历史代际分组执行。PR 的完整回归由 CI 作为最终门禁；本地全量不是每次交付的重复门禁。
+- 默认按改动选择最小但可信的本地验证：后端运行受影响测试或 focused pytest，插件仓运行受影响代际/插件测试，前端代码改动运行 `typecheck`、`lint` 和仓库已有的 focused 测试，并执行 `git diff --check`。依赖或锁文件、共享测试脚手架、数据库、启动链、跨模块生命周期、兼容层、大范围行为改动，或用户明确要求本地全量时，才扩大到对应仓库全量：主程序在 `MoviePilot/` 跑 `<workspace>/.venv-test/bin/python tests/run.py`，插件仓跑 `MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot <workspace>/.venv-test/bin/python tests/run.py`，由各仓 runner 按 V3、兼容 V2 和历史代际分组执行。PR 是否阻断交付由目标仓库的 required checks/Ruleset、平台真实限制和本次改动拥有的实质问题决定；普通 full regression、optional check 或 pending 自动化不自动成为门禁，本地全量也不是每次交付的重复门禁。
 - 在有效源码、依赖锁、测试脚手架和环境边界未改变时复用已有验证；后续改动或非重叠 rebase 只重跑被具体变化失效的证据，不因 HEAD 变化机械重跑全部检查。纯文档、说明文本或局部 metadata 变更继续按实际风险使用更小的可复现检查。
-- 前端改动至少验证 `typecheck`、`lint`，涉及 UI 的 PR 附截图；公开截图前必须脱敏用户名、站点、token、媒体库路径、浏览器资料和其他私有信息。
+- 前端改动至少验证 `typecheck`、`lint`；视觉行为按 `frontend-development` 验证实际渲染面。
 
 ## External User Reports & Instance Boundaries
 - 诊断前先标明被判断的实例、部署、镜像或版本以及相关时间窗口，并区分源码可达性、目标现场事实和实验室复现结果。
@@ -81,7 +82,7 @@
 - 如果探测到用户正在用 PyCharm debugger 或 PyCharm 终端运行服务，不要抢占重启；通过 API、日志、浏览器控制台、网络请求和 DOM/snapshot 做旁路验证。若后端停在断点，提示用户在 PyCharm 中继续/单步。
 - PyCharm 终端中的 `yarn dev` stdout 通常不能直接读取；前端问题优先通过浏览器控制台、Vite 页面 overlay、网络请求、DOM/snapshot、`yarn typecheck`/`lint` 复现。若需要长期共享终端日志，建议将命令改为 `yarn dev 2>&1 | tee /tmp/moviepilot-frontend-dev.log` 或启用 PyCharm console output 保存到文件。
 - 浏览器调试优先使用当前环境可用的 Browser / Chrome / CDP 工具连接本地页面或已有 Chrome：先列出页面，再导航、截屏、读取 DOM 或 accessibility snapshot、检查控制台/网络状态；必要时结合接口请求和后端日志定位问题。首次连接页面可能需要用户在 Chrome 上允许调试。
-- 对 UI 修复的最低验证闭环：相关接口返回正常、页面无明显控制台错误、关键交互可完成、截图或 snapshot 能证明页面进入预期状态。涉及响应式或布局的改动至少检查桌面与移动宽度。
+- 对 UI 修复的最低验证闭环：相关接口返回正常、页面无明显控制台错误、关键交互可完成，实际渲染状态与交互结果可复核。涉及响应式或布局的改动至少检查桌面与移动宽度。
 - 对插件 UI 或模块联邦改动，还要验证远程组件加载、插件运行时副本、插件日志和前端网络请求，避免只改源码但运行时仍加载旧副本。
 
 ## Local Plugin Development & Debugging
@@ -108,11 +109,11 @@
 - 推荐 Conventional Commits：`feat(scope): ...`、`fix(scope): ...`、`chore: ...`、`refactor: ...`。
 - Commit message 默认只写 subject（单行标题），使用英文撰写，不附 body/description；改动的"为什么、风险、回归点"放到 PR 描述里，不放进 commit message。
 - MoviePilot 面向中文社区；PR 标题、PR 正文、issue/review 回复默认使用中文。仓库模板、目标上游或维护者对某次交付另有明确要求时，按该要求执行。
-- PR 正文应用 `dev-workflow` 的通用沟通契约并随风险调整深度：让不了解本地讨论的维护者直接看懂问题或目标、主要行为变化与验证；兼容、迁移、安全、跨仓依赖或剩余风险只在实际存在时展开，不固定六章节，不重复自动摘要或本地执行流水。
+- PR 正文应用 `product-development` 的通用沟通契约并随风险调整深度：让不了解本地讨论的维护者直接看懂问题或目标、主要行为变化与验证；兼容、迁移、安全、跨仓依赖或剩余风险只在实际存在时展开，不固定六章节，不重复自动摘要或本地执行流水。
 - 单次提交聚焦单一子仓/单一主题，避免混入无关改动。
 - 已被 `.gitignore` 或仓库 ignore 规则显式忽略的文件视为本地或派生产物，默认不纳入 git，也不需要反复询问是否提交；只有维护者明确要求 version/force-add 时才处理。
 - GitHub 操作默认先直接使用 `gh`
-- commit、push、PR、release 权限以当前适用的 workflow/delivery skill、本轮用户明确授权、Goal 或已批准 plan 边界为准；这些事实源已授权时不要二次确认，未授权时 commit 或 push 前先获得维护者确认。
+- commit、push、PR、release 权限以 `product-development`、适用的 `moviepilot-delivery` 路由、本轮用户明确授权、Goal/Task 或已批准 plan 边界为准；这些事实源已授权时不要二次确认，未授权时在对应外部动作前获得维护者确认。
 - 上述 MoviePilot 产品代码仓本地开发、调试和测试使用 `moviepilot-development` skill；push、PR、merge 和发版使用 `moviepilot-delivery` skill。`MoviePilot-Skills` 明确排除。
 - 插件 V3 专用改动进入 `plugins.v3/`，V1/V2 仅在明确要求兼容或维护历史实现时修改对应目录。
 - 当前只维护 v3：主程序后端、前端与 Rust PR 目标为上游 `v3`，插件仓发布目标为 `main`。
