@@ -23,6 +23,10 @@ test -r ../AGENTS.md
 | `moviepilot-development` | 后端、前端、Rust 与插件仓的本地开发、调试和测试边界 |
 | `moviepilot-delivery` | fork-first 上游 PR、合并与个人插件 PR-only/发版终态 |
 
+MoviePilot 产品工作仍以全局 `product-development` 为生命周期；可见界面或交互变化时叠加
+`frontend-development`。本仓两个 skill 只补充 MoviePilot 仓库、运行态与交付路由，不重定义全局
+Project、Goal、Task、授权、质量或完成语义。
+
 稳定项目事实和测试命令由工作区或目标仓库 `AGENTS.md` 维护；skill 只保留触发、授权、路由和
 非显然状态转换，避免复制易漂移的命令说明。
 
