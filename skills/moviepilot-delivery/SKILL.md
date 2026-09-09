@@ -11,6 +11,11 @@ description: Use for commit-and-publish, push, pull request creation or follow-u
 发版。commit、push、PR、merge、release 和公开回复分别服从工作区授权规则、已批准计划、
 Goal/Task 或当前用户授权；账户能力不构成当前任务授权。
 
+维护者执行身份与裁量来自当前用户或项目已确认语境，不由 `WRITE`、`viewerPermission` 或
+contributor 自称身份授予。复用已明确的 PR 含 merge 语义，不重新询问终点；用户明确要求创建后
+停止时止于 PR，不从 PR 推断 release。公共 contributor 准备流程按适用范围执行；维护者可基于
+有效证据明确调整验证时机、先保存本地 anchor 或安排跨仓交付顺序，保留未验证项和后续安排。
+
 检查当前仓库、remote、分支、base、提交范围、验证证据和工作树。remote 角色按 URL 与仓库身份
 识别，不按本地名称猜测。跨仓改动分别交付，不混成一个 PR。
 
@@ -28,9 +33,13 @@ Request，即使上游具有 `WRITE`。权限只决定能否执行平台允许�
 ## jxxghp 上游 Checks 与 Review
 
 以下判断只适用于 `jxxghp/*` 上游路由；个人插件路径服从 `personal-plugin.md` 的独立门禁。
-普通 CI 和 Review 状态只是交付信号，不因名称、颜色或来源自动成为门禁。按工作区质量与完成规则排除与
-当前改动无关且未被其加重或重新触达的 base/上游既有问题、无关自动化/基础设施/配额故障，以及
-不可操作的 Review 反馈；已有 merge 授权且平台允许正常 merge 时无需再次询问维护者。
+普通 CI 和 Review 状态只是交付信号，不因名称、颜色或来源自动成为门禁。以日志、base 对照或
+其他有效证据判断归属：当前改动无关且未被其加重或重新触达的 base/上游既有问题、无关自动化/
+基础设施/配额故障，以及不可操作的 Review 反馈，按已记录的维护者决定处理。工作区已确认的
+决定可预先授权同一范围失败的处置；记录具体失败、无关依据及适用决定，已有 merge 授权且平台
+允许正常 merge 时无需再次询问维护者。这满足后端 `docs/rules/12-collaboration-and-distribution.md`
+的 documented maintainer decision，不要求对同一范围逐次 approve；单独的 merge 授权不替代
+失败归属证据或处置决定。
 平台实际阻止正常 merge 或当前改动存在未解决的实质问题时才阻塞；不得据此使用 `--admin` 绕过
 真实保护规则。
 
