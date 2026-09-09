@@ -227,14 +227,42 @@ def test_public_skill_source_does_not_disclose_private_repository_names() -> Non
     assert "私有目标只从全局私有" in public_source
 
 
-def test_workspace_owns_moviepilot_env_secret_and_test_isolation() -> None:
+def test_workspace_maps_shared_env_and_preserves_subprocess_loading() -> None:
     workspace = _read(REPO_ROOT / "instructions/moviepilot-workspace.md")
-    compact_workspace = re.sub(r"\s+", "", workspace)
 
-    assert "`<workspace>/app.env` 可能包含运行凭据和私有配置" in workspace
-    assert "不得为了诊断读取或打印内容" in workspace
-    assert "不得提交、写入公共文本或拼进命令参数" in workspace
-    assert "隔离真实`CONFIG_DIR`" in compact_workspace
+    assert 'UV_PROJECT_ENVIRONMENT="${PWD}/.venv"' in workspace
+    assert 'UV_PROJECT_ENVIRONMENT="<workspace>/.venv-test"' in workspace
+    assert "工作区根 `app.env` 必须在子进程中加载" in workspace
+    assert "启动时必须在子进程中 `source <workspace>/app.env`" in workspace
+    assert "测试不加载运行用 `app.env`" in workspace
+    assert "隔离临时 `CONFIG_DIR`" in workspace
+    assert "`--no-sync` 不会校验已安装依赖一致性" in workspace
+
+
+def test_maintainer_authority_preserves_shared_contracts_and_explicit_limits() -> None:
+    workspace = _read(REPO_ROOT / "instructions/moviepilot-workspace.md")
+    development = _skill("moviepilot-development")
+    delivery = _skill("moviepilot-delivery").replace("\n", "")
+
+    assert "contributor default" in workspace
+    assert "当前用户已确认为上游主要维护者" in workspace
+    assert "授权来自当前用户或项目已确认语境" in workspace
+    assert "不以 GitHub `WRITE`" in workspace
+    assert "当前明确的不 commit/push/sync 等限制优先" in workspace
+    assert "用户要求“PR”包含跟踪并合并" in workspace
+    assert "明确 PR 创建后停止或等待他人时按该终点" in workspace
+    assert "同一范围的预授权" in workspace
+    assert "先保存有价值的本地" in development
+    assert "不把可恢复版本称为验收通过" in development
+    assert "`TestCase` 文件时保留整文件迁移为 pytest 原生" in development
+    for contract in ("业务架构", "SDK/Compat 兼容", "正确性", "测试隔离", "真实报告"):
+        assert contract in development
+    assert "复用已明确的 PR 含 merge 语义，不重新询问终点" in delivery
+    assert "contributor 自称身份" in delivery
+    assert "不从 PR 推断 release" in delivery
+    assert "单独的 merge 授权不替代失败归属证据或处置决定" in delivery
+    assert "docs/rules/12-collaboration-and-distribution.md" in delivery
+    assert "documented maintainer decision" in delivery
 
 
 def test_retired_skill_names_are_absent_from_active_instruction_surfaces() -> None:

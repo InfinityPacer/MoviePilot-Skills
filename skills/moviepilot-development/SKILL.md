@@ -33,9 +33,13 @@ description: Use for local development, diagnosis, reproduction, testing, runtim
   所有权审计。
 - 保留当前任务改动；不混入、reset、stash 或覆盖无关改动。只有无法安全隔离时才使用用户授权的
   worktree 或询问必要问题。
-- 按受影响路径和更近规则选择最小可信验证；不在 skill 中固化易漂移的命令副本。
-- 本地 commit 服从工作区授权规则、已批准计划或当前授权。本 skill 不 push、不创建 PR、不 merge、
-  不发版。
+- 按受影响路径和更近规则选择适用验证，复用源码、锁文件、脚手架和环境边界未改变的证据；
+  维护者可按工作区已确认授权调整验证安排。公共 contributor checklist 不自动成为每次本地保存的
+  前置条件；业务架构、SDK/Compat 兼容、正确性、测试隔离和真实报告仍须遵守。改到已有
+  `TestCase` 文件时保留整文件迁移为 pytest 原生的项目决策，不扩改未触及文件。
+- 本地 commit 服从工作区授权规则、已批准计划或当前授权。已获授权时可先保存有价值的本地
+  anchor，注明尚未完成的验证、已知问题和下一步；不把可恢复版本称为验收通过。明确不 commit
+  时保持工作树。本 skill 不 push、不创建 PR、不 merge、不发版。
 
 ## 完成
 

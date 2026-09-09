@@ -10,8 +10,8 @@
 
 ## Build, Test, and Development Commands
 后端（`MoviePilot/`）：
-- `UV_PROJECT_ENVIRONMENT=.venv uv sync --locked --directory MoviePilot`：按 `pyproject.toml` 与 `uv.lock` 安装依赖（Python 3.14+）。
-- `<workspace>/.venv/bin/python -m app.main`：本地启动后端（默认 API `3001`），工作目录为 `MoviePilot/`。
+- 在工作区根执行 `UV_PROJECT_ENVIRONMENT="${PWD}/.venv" uv sync --locked --directory MoviePilot`：按 `pyproject.toml` 与 `uv.lock` 安装依赖（Python 3.14+）。环境路径使用绝对路径，避免 `--directory` 后落到后端仓内。
+- `env -i ... /bin/zsh -lc 'set -a; source <workspace>/app.env; set +a; cd <workspace>/MoviePilot; exec <workspace>/.venv/bin/python -m app.main'`：本地启动后端（默认 API `3001`）。工作区根 `app.env` 必须在子进程中加载，不得直接运行未加载该文件的后端进程，也不得使用 `MoviePilot/.venv/bin/python`。
 - 后端与插件单测命令统一见「Testing Guidelines」，不要在本段维护第二套测试入口。
 - `pylint app`：后端全量静态检查，仅在高风险改动或明确要求本地全量时运行；普通改动按受影响的 Python 文件运行。
 
@@ -30,6 +30,8 @@
 
 ## Task Completion Defaults
 - MoviePilot 项目规则由本文件和目标仓库更近说明共同定义；本文件不创建独立 Goal、Checkpoint、Review 或 CI 控制面。
+- 公共仓库 `AGENTS.md` 的业务架构、兼容性、正确性、测试隔离和真实报告是共同工程合同；提交准备与 checklist 是 contributor default。当前用户已确认为上游主要维护者，本工作区按维护者执行语境协作；授权来自当前用户或项目已确认语境，不以 GitHub `WRITE` 或 contributor 自称身份证明。
+- 维护者可依据已有证据明确调整适用检查的范围、时机和交付顺序，包括先保存本地 anchor 再补验证。记录调整依据、已验证/未验证项及后续安排；anchor 只表示可恢复状态，不表示质量全过或产品已接受。当前明确的不 commit/push/sync 等限制优先。
 - 先完成用户指定的 MoviePilot 目标，再按改动类型选择最小但可信的验证闭环。不要为了覆盖所有可能检查而扩大到无关仓库、无关插件或无关运行态。
 - 后端、前端、插件、文档或交付流程分别按本文件对应章节验证；若服务、凭据、外部依赖或登录态不可用，说明阻塞类别、已完成的本地证据和剩余风险。
 - 涉及发布、PR、issue 回复、公开截图或日志摘录时，最终交付前做一次隐私审查，确保公开内容只包含维护者可复现或可判断的信息。
@@ -58,6 +60,7 @@
 - 后端测试统一放在 `MoviePilot/tests/`，文件名使用 `test_*.py`。
 - 涉及外部服务（TMDB、下载器、媒体服务器、LLM 目录、MP 服务器、任意外链）优先 mock，保证 focused 测试与 CI 全量测试都可重复且零真实出站。详见 `MoviePilot/docs/testing.md`。
 - 后端单测优先使用单测专用环境 `<workspace>/.venv-test/bin/python`：该环境按 `MoviePilot/pyproject.toml` 与 `uv.lock` 安装依赖，不依赖本地生成的站点扩展资源，能复现 CI / 全新环境，避免本地编译产物和额外包掩盖问题。
+- 后端公共文档中的 `uv run --locked --no-sync <command>` 在本工作区映射为 `UV_PROJECT_ENVIRONMENT="<workspace>/.venv-test" uv run --locked --no-sync <command>`，工作目录为目标后端 checkout；也可直接用上述解释器运行 `-m pytest`、`-m pylint` 或脚本。共享环境须匹配该 checkout 的锁文件与依赖组；`--no-sync` 不会校验已安装依赖一致性。运行环境 `.venv` 与测试环境 `.venv-test` 分开，测试不加载运行用 `app.env`，继续隔离临时 `CONFIG_DIR`。
 - 普通主程序及插件单测由 `MoviePilot/tests/conftest.py` 复用的 `app.testing.bootstrap` 强制安装 `app.application.site.sites` 最小垫片，不加载源码目录中的本机 `.so` / `.pyd`；真实制品只在资源与 ABI 专项验收中加载。重建时在工作区根目录执行：`WORKSPACE="$(pwd -P)" && uv venv --python 3.14 --clear "${WORKSPACE}/.venv-test" && (cd "${WORKSPACE}/MoviePilot" && uv export --locked --no-default-groups --group dev --group runtime-standard --format requirements.txt | uv pip sync --python "${WORKSPACE}/.venv-test/bin/python" -)`。
 - 插件仓单测放在各插件仓库根 `tests/` 下（**不放插件目录内**：插件按整目录 `copytree` 下发，目录内测试会被带进运行时副本），按目标仓库实际支持的代际目录分组（通常为 `v3/`、`v2/`、`v1/`）；每个插件按 ID 建独立子目录，例如 `tests/v3/<plugin_id>/`，不要把用例文件直接平铺在代际目录下；插件独立目录内的测试文件名使用 `test_*.py`，不再重复插件名前缀。各仓脚手架以目标仓库现有实现为准，不要求跨仓机械相同。没有更近的仓库或目录级 `AGENTS.md` 时，以本基线为准。
 - 插件仓 `pytest.ini` 应配置 `addopts = --import-mode=importlib`，避免不同插件独立目录内复用 `test_plugin.py` 等同名测试文件时触发 pytest 默认导入模式的模块名冲突。
@@ -78,7 +81,7 @@
 ## Full-Stack Runtime Verification
 - 以下本地运行态规则只适用于当前本地实例或已声明边界的实验室复现；外部用户现场遵循上一节的证据归属规则。
 - 涉及前后端联动、页面行为、插件 UI、登录态、接口契约或用户可见流程的任务，不要只停在静态检查；优先复用或启动可用服务，完成一次真实浏览器验证。
-- 开始运行态验证前，先探测端口、进程、关键接口和日志，判断现有后端/前端服务是否可复用。后端通常在 `MoviePilot/` 中运行，启动命令为 `<workspace>/.venv/bin/python -m app.main`；前端通常在 `MoviePilot-Frontend/` 中运行 `yarn dev`。
+- 开始运行态验证前，先探测端口、进程、关键接口和日志，判断现有后端/前端服务是否可复用。后端通常在 `MoviePilot/` 中运行；启动时必须在子进程中 `source <workspace>/app.env`，再调用 `<workspace>/.venv/bin/python -m app.main`。前端通常在 `MoviePilot-Frontend/` 中运行 `yarn dev`。
 - 如果探测到用户正在用 PyCharm debugger 或 PyCharm 终端运行服务，不要抢占重启；通过 API、日志、浏览器控制台、网络请求和 DOM/snapshot 做旁路验证。若后端停在断点，提示用户在 PyCharm 中继续/单步。
 - PyCharm 终端中的 `yarn dev` stdout 通常不能直接读取；前端问题优先通过浏览器控制台、Vite 页面 overlay、网络请求、DOM/snapshot、`yarn typecheck`/`lint` 复现。若需要长期共享终端日志，建议将命令改为 `yarn dev 2>&1 | tee /tmp/moviepilot-frontend-dev.log` 或启用 PyCharm console output 保存到文件。
 - 浏览器调试优先使用当前环境可用的 Browser / Chrome / CDP 工具连接本地页面或已有 Chrome：先列出页面，再导航、截屏、读取 DOM 或 accessibility snapshot、检查控制台/网络状态；必要时结合接口请求和后端日志定位问题。首次连接页面可能需要用户在 Chrome 上允许调试。
@@ -96,12 +99,8 @@
 - 插件代码或运行态改动的验证优先包括：`python -m py_compile` 对源码和运行时副本编译、`python -m json.tool` 校验本次涉及的 `package*.json`、`git diff --check`、旧配置字段/旧文案 `rg` 清理检查，以及一次本地同步、热加载日志或运行时接口验证。纯 README、索引说明、文案或 package metadata 改动按影响面选择 `json.tool`、链接/文本检查、`git diff --check` 等更小闭环即可。
 
 ## Local Secret and Operations Credential Contract
-- `<workspace>/app.env` 可能包含运行凭据和私有配置；命令确需加载时只在受限子进程中 source，
-  不得为了诊断读取或打印内容，不得提交、写入公共文本或拼进命令参数。测试必须继续隔离真实
-  `CONFIG_DIR`。
 - 本地浏览器登录和 SSH 登录统一使用 `$secure-access`；每个 profile 指定一个 1Password item 和明确字段，地址、用户名、密码或私钥在一次 item 读取中解析到内存。
 - 浏览器 profile 使用本地 MoviePilot 登录 item 的 `username`/`password` 字段；SSH profile 使用主机、用户名和认证字段；NAS profile 的地址明确来自 item 顶层 `website` URL，并启用 `sudo`。`notesPlain` 不作为隐式地址或凭据兜底。
-- `.ops/moviepilot/.login` 和 `.ops/moviepilot-server/.ssh` 是已退役的明文凭据位置，不得重新创建、提交、打印、截图或写入日志。新自动化不得支持 file provider、`usr`/`pwd` 历史键名或其他明文 fallback。
 - 1Password secret value 只能由 `$secure-access` 在内存中读取；禁止通过命令行参数、环境变量、临时文件、shell trace 或日志传递 secret value。`op://...` item 引用属于非敏感配置，可以出现在本地 profile 和 agent 指令中。
 - `$secure-access` 默认使用已安装的 machine provider，不要求当前终端预先完成 `op` app-integration 授权。只有用户明确要求显式授权，或 machine provider 失败且确认用户在场后，才在当前交互 PTY 以 `--provider interactive` 发起一次独立请求；不得自动弹出授权、循环重试或回退到本地凭据文件。
 
@@ -113,15 +112,8 @@
 - 单次提交聚焦单一子仓/单一主题，避免混入无关改动。
 - 已被 `.gitignore` 或仓库 ignore 规则显式忽略的文件视为本地或派生产物，默认不纳入 git，也不需要反复询问是否提交；只有维护者明确要求 version/force-add 时才处理。
 - GitHub 操作默认先直接使用 `gh`
-- commit、push、PR、release 权限以工作区规则、适用的 `moviepilot-delivery` 路由、本轮用户明确授权、Goal/Task 或已批准 plan 边界为准；这些事实源已授权时不要二次确认，未授权时在对应外部动作前获得维护者确认。
+- 本工作区已确认的维护者决定允许在 merge 已授权、平台允许正常合并时，继续交付已证实与改动无关且未被加重或重新触达的 base 失败、自动化/基础设施/配额故障及不可操作的 Review 反馈。这是同一范围的预授权；每次保留具体失败、无关证据和决定依据，不逐次重问，也不据此绕过保护或放行本次改动的实质缺陷。
+- commit、push、PR、merge、release 权限以工作区规则、适用的 `moviepilot-delivery` 路由、本轮用户明确授权、Goal/Task 或已批准 plan 边界为准；这些事实源已授权时不要二次确认，未授权时在对应外部动作前获得维护者确认。在本工作区已确认的维护者语境中，用户要求“PR”包含跟踪并合并；明确 PR 创建后停止或等待他人时按该终点，不由 PR 授权推断发版。
 - 上述 MoviePilot 产品代码仓本地开发、调试和测试使用 `moviepilot-development` skill；push、PR、merge 和发版使用 `moviepilot-delivery` skill。`MoviePilot-Skills` 明确排除。
 - 插件 V3 专用改动进入 `plugins.v3/`，V1/V2 仅在明确要求兼容或维护历史实现时修改对应目录。
 - 当前只维护 v3：主程序后端、前端与 Rust PR 目标为上游 `v3`，插件仓发布目标为 `main`。
-
-## Official Wiki Alignment (Important)
-以下约束以官方 Wiki 为准（`wiki.movie-pilot.org`）：
-- 部署优先推荐 Docker；`/media` 挂载需与下载器/媒体服务器路径体系一致（硬链接场景必须同盘同根）。
-- 配置优先级：环境变量 > `app.env`/WebUI；若已设置环境变量，WebUI 修改不会生效。
-- `SUPERUSER`、`SUPERUSER_PASSWORD` 仅首次安装生效；V2 的 `API_TOKEN` 需至少 16 位复杂字符串。
-- 本地插件开发可配置 `PLUGIN_LOCAL_REPO_PATHS` 指向本地插件仓库，并启用 `PLUGIN_AUTO_RELOAD=true`；仅开发调试时启用 `DEV=true`（会暂停定时任务）。
-- `PLUGIN_MARKET` 仅支持 GitHub `main` 分支仓库，多个地址用逗号分隔。
