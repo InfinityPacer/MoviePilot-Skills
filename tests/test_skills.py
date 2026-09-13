@@ -56,6 +56,7 @@ def test_skill_surface_uses_progressive_disclosure() -> None:
     references = sorted(SKILLS_ROOT.glob("*/references/*.md"))
 
     assert {path.name for path in references} == {
+        "nas-local-plugin-deployment.md",
         "personal-plugin.md",
         "upstream-pr.md",
     }
@@ -65,8 +66,14 @@ def test_skill_surface_uses_progressive_disclosure() -> None:
 
     delivery = _skill("moviepilot-delivery")
     for path in references:
-        relative = path.relative_to(SKILLS_ROOT / "moviepilot-delivery")
-        assert f"]({relative.as_posix()})" in delivery
+        if path.is_relative_to(SKILLS_ROOT / "moviepilot-delivery"):
+            relative = path.relative_to(SKILLS_ROOT / "moviepilot-delivery")
+            assert f"]({relative.as_posix()})" in delivery
+
+    development = _skill("moviepilot-development")
+    development_ref = SKILLS_ROOT / "moviepilot-development/references/nas-local-plugin-deployment.md"
+    assert "](references/nas-local-plugin-deployment.md)" in development
+    assert development_ref.is_file()
 
 
 def test_development_routes_workspace_evidence_only_when_relevant() -> None:
