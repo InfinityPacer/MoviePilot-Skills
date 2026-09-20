@@ -1,11 +1,12 @@
 {
   "schema_version": 1,
   "install_targets": {
-    "codex": "../.agents/skills"
+    "codex": "../.agents/skills",
+    "claude": "../.claude/skills"
   },
   "skills": [
     {
-      "install_targets": ["codex"],
+      "install_targets": ["codex", "claude"],
       "name": "moviepilot-delivery",
       "ownership": "owned",
       "retired_names": [
@@ -17,9 +18,11 @@
       "sync_group": "moviepilot"
     },
     {
-      "install_targets": ["codex"],
+      "dependencies": ["moviepilot-delivery"],
+      "install_targets": ["codex", "claude"],
       "name": "moviepilot-development",
       "ownership": "owned",
+      "runtime_dependencies": [{"name": "secure-access", "provider": "personal-agent-skills"}],
       "retired_names": [
         "moviepilot-main-development",
         "moviepilot-plugin-development"
@@ -28,7 +31,7 @@
       "sync_group": "moviepilot"
     },
     {
-      "install_targets": ["codex"],
+      "install_targets": ["codex", "claude"],
       "name": "moviepilot-main-development",
       "ownership": "owned",
       "replacement": "moviepilot-development",
@@ -36,7 +39,7 @@
       "sync_group": "moviepilot"
     },
     {
-      "install_targets": ["codex"],
+      "install_targets": ["codex", "claude"],
       "name": "moviepilot-plugin-development",
       "ownership": "owned",
       "replacement": "moviepilot-development",
@@ -44,7 +47,7 @@
       "sync_group": "moviepilot"
     },
     {
-      "install_targets": ["codex"],
+      "install_targets": ["codex", "claude"],
       "name": "moviepilot-official-plugin-pr",
       "ownership": "owned",
       "replacement": "moviepilot-delivery",
@@ -52,7 +55,7 @@
       "sync_group": "moviepilot"
     },
     {
-      "install_targets": ["codex"],
+      "install_targets": ["codex", "claude"],
       "name": "moviepilot-plugin-delivery",
       "ownership": "owned",
       "replacement": "moviepilot-delivery",
@@ -60,7 +63,7 @@
       "sync_group": "moviepilot"
     },
     {
-      "install_targets": ["codex"],
+      "install_targets": ["codex", "claude"],
       "name": "moviepilot-upstream-pr",
       "ownership": "owned",
       "replacement": "moviepilot-delivery",

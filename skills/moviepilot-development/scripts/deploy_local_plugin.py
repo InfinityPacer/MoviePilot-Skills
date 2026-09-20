@@ -30,6 +30,20 @@ def build_archive(plugin_dir: Path, output: Path) -> tuple[int, str]:
     return included, digest
 
 
+# secure-access 在每个运行时各装一份副本，脚本因此按运行时目录顺序解析，而不是固定到某一个。
+CONTROLLER_CANDIDATES = (
+    Path.home() / ".codex/skills/secure-access/scripts/access-controller.py",
+    Path.home() / ".claude/skills/secure-access/scripts/access-controller.py",
+)
+
+
+def default_controller() -> Path:
+    for candidate in CONTROLLER_CANDIDATES:
+        if candidate.is_file():
+            return candidate
+    return CONTROLLER_CANDIDATES[0]
+
+
 def run_controller(args: list[str], *, input_data: bytes | str | None = None) -> None:
     command = [sys.executable, *args]
     payload = input_data.encode() if isinstance(input_data, str) else input_data
@@ -45,7 +59,7 @@ def main() -> int:
     parser.add_argument(
         "--controller",
         type=Path,
-        default=Path.home() / ".codex/skills/secure-access/scripts/access-controller.py",
+        default=default_controller(),
         help="secure-access controller 脚本路径",
     )
     parser.add_argument("--timeout", type=int, default=60, help="每次远程操作超时时间（秒）")
