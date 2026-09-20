@@ -1,6 +1,6 @@
 # MoviePilot Skills
 
-MoviePilot 工作区的 Codex skill 与工作区指令事实源。先改本仓，通过验证后再同步安装副本。
+MoviePilot 工作区的 skill 与工作区指令事实源。先改本仓，通过验证后再同步安装副本。
 
 ## Workspace Instructions
 
@@ -47,13 +47,16 @@ python "${SKILL_CREATOR_DIR}/scripts/quick_validate.py" skills/moviepilot-delive
 ## 同步
 
 `skill-catalog.json` 是本仓的同步事实源。使用个人 skill 仓库提供的通用同步工具，并显式传入本仓
-catalog 和 source root。Codex 安装到工作区 `../.agents/skills`；两个 MoviePilot workflow skill
-不进入用户级全局 skill 目录，也不再同步 Claude 副本。
+catalog 和 source root。Codex 安装到工作区 `../.agents/skills`，Claude Code 安装到工作区
+`../.claude/skills`；两个 MoviePilot workflow skill 不进入用户级全局 skill 目录。Claude Code 从
+会话 cwd 向上查找到仓库根的 `.claude/skills`，因此工作区副本对 MoviePilot 各子仓的会话同样可见。
 
 ```bash
 SKILL_SYNC_TOOL="${SKILL_SYNC_TOOL:?set path to personal-agent-skills/tools/sync_skills.py}"
 python3 "$SKILL_SYNC_TOOL" --catalog skill-catalog.json --source-root skills --target codex
 python3 "$SKILL_SYNC_TOOL" --catalog skill-catalog.json --source-root skills --target codex --check
+python3 "$SKILL_SYNC_TOOL" --catalog skill-catalog.json --source-root skills --target claude
+python3 "$SKILL_SYNC_TOOL" --catalog skill-catalog.json --source-root skills --target claude --check
 ```
 
 首次迁移到工作区 scope 时，将两个当前 skill 和五个退休名称的用户级全局目录移到 Trash，再

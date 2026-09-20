@@ -311,7 +311,10 @@ def test_readme_syncs_two_skills_and_retires_old_installs_via_trash() -> None:
     readme = _read(REPO_ROOT / "README.md")
 
     catalog = json.loads(_read(REPO_ROOT / "skill-catalog.json"))
-    assert catalog["install_targets"] == {"codex": "../.agents/skills"}
+    assert catalog["install_targets"] == {
+        "codex": "../.agents/skills",
+        "claude": "../.claude/skills",
+    }
     active = {
         entry["name"] for entry in catalog["skills"] if entry["status"] == "active"
     }
@@ -320,11 +323,13 @@ def test_readme_syncs_two_skills_and_retires_old_installs_via_trash() -> None:
     }
     assert active == EXPECTED_SKILLS
     assert retired == RETIRED_SKILLS
-    assert all(entry["install_targets"] == ["codex"] for entry in catalog["skills"])
+    assert all(
+        entry["install_targets"] == ["codex", "claude"] for entry in catalog["skills"]
+    )
     assert "skill-catalog.json" in readme
     assert "--catalog skill-catalog.json --source-root skills" in readme
     assert "--target codex --check" in readme
-    assert "--target claude" not in readme
+    assert "--target claude --check" in readme
     assert "不进入用户级全局 skill 目录" in readme
     assert "/usr/bin/trash" in readme
     assert "可从 Trash 恢复" in readme

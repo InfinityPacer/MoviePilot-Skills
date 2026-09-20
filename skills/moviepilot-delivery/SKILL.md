@@ -21,7 +21,7 @@ contributor 自称身份授予。复用已明确的 PR 含 merge 语义，不重
 
 ## 稳定能力与 Fork
 
-权限路径不明时，先读取全局 Codex 指令链接的私有 `github-maintainer-context.md`。对其中同一账号
+权限路径不明时，先读取全局指令链接的私有 `github-maintainer-context.md`。对其中同一账号
 和精确目标仓已记录的正向能力直接复用，不在每个 PR 前查询 `viewerPermission`；能力失效、权限
 拒绝和未知能力的重查遵循工作区 GitHub 权限规则。
 
