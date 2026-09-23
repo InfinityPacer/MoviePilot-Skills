@@ -106,7 +106,7 @@
 
 ## Commit & Pull Request Guidelines
 - 推荐 Conventional Commits：`feat(scope): ...`、`fix(scope): ...`、`chore: ...`、`refactor: ...`。
-- Commit message 默认只写 subject（单行标题），使用英文撰写，不附 body/description；改动的"为什么、风险、回归点"放到 PR 描述里，不放进 commit message。
+- Commit message 默认只写 subject（单行标题），使用英文撰写，不附 body/description；改动的"为什么、风险、回归点"放到 PR 描述里，不放进 commit message。例外：允许在末尾附加 `Co-Authored-By` trailer，它是署名元数据，不算 body；squash 合并的最终提交信息同样保留该 trailer。
 - MoviePilot 面向中文社区；PR 标题、PR 正文、issue/review 回复默认使用中文。仓库模板、目标上游或维护者对某次交付另有明确要求时，按该要求执行。
 - PR 正文遵循通用沟通契约并随风险调整深度：让不了解本地讨论的维护者直接看懂问题或目标、主要行为变化与验证；兼容、迁移、安全、跨仓依赖或剩余风险只在实际存在时展开，不固定六章节，不重复自动摘要或本地执行流水。
 - 单次提交聚焦单一子仓/单一主题，避免混入无关改动。
