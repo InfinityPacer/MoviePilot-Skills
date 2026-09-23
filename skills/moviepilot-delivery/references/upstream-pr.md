@@ -11,6 +11,9 @@
 - 确认 topic branch 基于最新上游 base，且 base 到 HEAD 只包含本次交付提交。
 - 复用仍有效的开发验证；按目标仓说明、改动风险和已记录的维护者安排补齐适用检查，不复制固定
   命令清单。本地 anchor 与可合并状态分别报告，保存版本不代表验证完成。
+- push 前对照目标仓 CI workflow 中与本次改动相关的门禁 job，在本地跑完该 job 的对应检查。门禁
+  job 按步骤顺序执行、首个失败即停，前一步失败会遮住后续检查；修复后同样跑完整个 job 的本地
+  对应项，不只重跑失败的那一步。写入基线或 fixture 后重跑不写文件的检查及其关联文档测试。
 - 本地 commit 使用单行英文 Conventional Commit subject。push/PR 已获授权后，只把 topic branch
   推到对应 fork；不直接 push 上游或默认分支。
 - PR base 指向 `jxxghp/*` 上游，head 指向 `InfinityPacer/*` fork 分支。使用真实换行的 body file，
