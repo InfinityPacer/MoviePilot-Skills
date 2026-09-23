@@ -25,7 +25,7 @@
 前端（`MoviePilot-Frontend/`）：
 - `yarn && yarn dev`：启动开发服务。
 - `yarn build`：在依赖、构建配置、路由、资源、产物或高风险 UI 改动时构建产物。
-- `yarn typecheck && yarn lint`：前端代码改动的默认本地检查。
+- `yarn typecheck && yarn lint && yarn format:check`：前端代码改动的默认本地检查；`format:check` 只检查相对 `v3` 基线的变更文件，与 CI 的 format job 一致。
 - 前端生产 `JS/TS/Vue` 文件遵循 `MoviePilot-Frontend/docs/code-quality.md` 的渐进治理：业务 PR 修改到某个生产文件时，同时审计并修复该文件可安全处理的 ESLint 存量，运行 `yarn lint:suppressions:prune` 裁剪已失效 baseline；不要因此扩改未触及文件或新增 suppression。
 
 ## Task Completion Defaults
@@ -67,9 +67,9 @@
 - 插件单测统一使用 pytest 风格：普通测试函数或测试类均可，断言使用 `assert`；不要新增 `unittest.TestCase`、`unittest.main()` 或 `if __name__ == "__main__"` 测试入口。`unittest.mock` 可继续作为 mock 工具使用，“不用 unittest”指测试组织与执行入口不使用 unittest runner。
 - 插件单测经 `tests/_bootstrap.py` 定位同级 `MoviePilot` 后端并注入 `sys.path`、隔离临时 `CONFIG_DIR` 并建表；`app/testing`（`stub_modules` 等）是主程序与插件仓**共享**的 stub harness，bootstrap 后可 `from app.testing import ...` 复用。不同代可能存在同名包，必须分独立 pytest 会话运行。
 - 插件仓单测必须显式设置 `MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot`，并使用 `<workspace>/.venv-test/bin/python` 运行，避免依赖当前目录层级推导后端路径。
-- 默认按改动选择最小但可信的本地验证：后端运行受影响测试或 focused pytest，插件仓运行受影响代际/插件测试，前端代码改动运行 `typecheck`、`lint` 和仓库已有的 focused 测试，并执行 `git diff --check`。依赖或锁文件、共享测试脚手架、数据库、启动链、跨模块生命周期、兼容层、大范围行为改动，或用户明确要求本地全量时，才扩大到对应仓库全量：主程序在 `MoviePilot/` 跑 `<workspace>/.venv-test/bin/python tests/run.py`，插件仓跑 `MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot <workspace>/.venv-test/bin/python tests/run.py`，由各仓 runner 按 V3、兼容 V2 和历史代际分组执行。PR 是否阻断交付由目标仓库的 required checks/Ruleset、平台真实限制和本次改动拥有的实质问题决定；普通 full regression、optional check 或 pending 自动化不自动成为门禁，本地全量也不是每次交付的重复门禁。
+- 默认按改动选择最小但可信的本地验证：后端运行受影响测试或 focused pytest，插件仓运行受影响代际/插件测试，前端代码改动运行 `typecheck`、`lint`、`format:check` 和仓库已有的 focused 测试，并执行 `git diff --check`。依赖或锁文件、共享测试脚手架、数据库、启动链、跨模块生命周期、兼容层、大范围行为改动，或用户明确要求本地全量时，才扩大到对应仓库全量：主程序在 `MoviePilot/` 跑 `<workspace>/.venv-test/bin/python tests/run.py`，插件仓跑 `MOVIEPILOT_BACKEND_PATH=<workspace>/MoviePilot <workspace>/.venv-test/bin/python tests/run.py`，由各仓 runner 按 V3、兼容 V2 和历史代际分组执行。PR 是否阻断交付由目标仓库的 required checks/Ruleset、平台真实限制和本次改动拥有的实质问题决定；普通 full regression、optional check 或 pending 自动化不自动成为门禁，本地全量也不是每次交付的重复门禁。
 - 在有效源码、依赖锁、测试脚手架和环境边界未改变时复用已有验证；后续改动或非重叠 rebase 只重跑被具体变化失效的证据，不因 HEAD 变化机械重跑全部检查。纯文档、说明文本或局部 metadata 变更继续按实际风险使用更小的可复现检查。
-- 前端改动至少验证 `typecheck`、`lint`；视觉行为验证实际渲染面。
+- 前端改动至少验证 `typecheck`、`lint`、`format:check`；视觉行为验证实际渲染面。
 
 ## External User Reports & Instance Boundaries
 - 诊断前先标明被判断的实例、部署、镜像或版本以及相关时间窗口，并区分源码可达性、目标现场事实和实验室复现结果。
