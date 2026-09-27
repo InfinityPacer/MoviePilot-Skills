@@ -33,6 +33,11 @@ PR 创建不是默认终态。先回读 active Ruleset、branch protection、req
 并用 head SHA 防止合并陈旧版本。不要启用 Auto-merge，不用 `--admin` 绕过保护。若正常 merge 返回
 明确权限拒绝，使该能力事实失效并查询一次；不要改成直接 push 上游。
 
+合并方式默认使用 rebase（`gh pr merge --rebase`），保持上游线性历史且不引入 merge commit。
+这是本维护者执行合并时的默认选择，不修改上游仓库的 merge 设置或 Ruleset，因为那会改变其他
+维护者的合并方式。目标仓未开放 rebase、Ruleset 不允许，或 PR 因冲突无法 rebase 时，改用平台
+允许的方式并在交付报告中说明原因。
+
 复用工作区已确认的 PR 含 merge 授权。只有明确要求 PR 创建后停止、等待其他维护者，或更近规则
 保留最终处置权且尚未授权时，PR 创建并回读才是终态。合并后回读 merged commit；工作树允许时再
 fast-forward 本地 base，不 stash、reset 或覆盖用户改动来强行同步。
