@@ -29,6 +29,10 @@ SHA，只对本次已核对 PR 使用 Ruleset 允许的 merge 方法；检查尚
 使用带 head SHA 约束的 Auto-merge。不得扫描其他 PR，不用 `--admin`，不绕过保护，默认不删除
 本地或远程分支。
 
+个人插件仓已由维护者设为只允许 rebase 合并，仓库设置和默认分支 Ruleset 均只开放 rebase。合并与
+Auto-merge 使用 `--rebase`。rebase 合并会生成新的提交，发布 workflow、tag 与本地同步都以回读到的
+merged commit 为准，不以 PR head SHA 代替。
+
 PR-only 在 merged commit 和目标 `main` 回读正确后结束。发版继续确认：
 
 1. 当前发布 workflow 对该 merged commit 成功；
