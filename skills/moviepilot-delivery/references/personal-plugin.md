@@ -26,8 +26,7 @@
 
 当前授权覆盖 merge 时，先回读默认分支的 active Ruleset、仓库 merge/Auto-merge 设置和当前 PR head
 SHA，只对本次已核对 PR 使用 Ruleset 允许的 merge 方法；检查尚未完成且 Auto-merge 可用时，优先
-使用带 head SHA 约束的 Auto-merge。不得扫描其他 PR，不用 `--admin`，不绕过保护，默认不删除
-本地或远程分支。
+使用带 head SHA 约束的 Auto-merge。不得扫描其他 PR，不用 `--admin`，不绕过保护。
 
 个人插件仓已由维护者设为只允许 rebase 合并，仓库设置和默认分支 Ruleset 均只开放 rebase。合并与
 Auto-merge 使用 `--rebase`。rebase 合并会生成新的提交，发布 workflow、tag 与本地同步都以回读到的
@@ -39,6 +38,10 @@ PR-only 在 merged commit 和目标 `main` 回读正确后结束。发版继续�
 2. 预期 tag 指向该 merged commit；
 3. Release 与发布资产的标题、说明、名称和版本等 metadata 符合当前 workflow，默认不下载资产；
 4. 默认分支上的发布事实保持一致。
+
+到达所选终态后（PR-only 为 merged commit 回读正确，发版为上述四项确认完成），删除本次 PR 的
+本地与远程 topic branch，并把本地 `main` 同步到回读的 merged commit。rebase 合并使分支提交与
+`main` 不同，删除前以 PR 已合并状态为准，不用 `git branch -d` 的祖先判断，只删除本次 PR 的分支。
 
 workflow 失败时从新的 topic branch 修复并走 PR，不直接修改 `main`。来源 issue 默认在所选终态后
 回复一次：PR-only 附 PR URL、合并状态或 merge commit，发版附版本、PR URL 和 Release URL；
