@@ -72,8 +72,11 @@ def test_skill_surface_uses_progressive_disclosure() -> None:
 
     development = _skill("moviepilot-development")
     development_ref = SKILLS_ROOT / "moviepilot-development/references/nas-local-plugin-deployment.md"
+    ref_text = _read(development_ref)
     assert "](references/nas-local-plugin-deployment.md)" in development
     assert development_ref.is_file()
+    assert "/app/app/plugins/" in ref_text
+    assert "COPYFILE_DISABLE=1" in ref_text
 
 
 def test_development_routes_workspace_evidence_only_when_relevant() -> None:
@@ -151,7 +154,7 @@ def test_upstream_pr_is_fork_first_and_explicitly_merged_after_signal_triage() -
     assert "不要启用 Auto-merge" in upstream
     assert "不用 `--admin`" in upstream
     assert "明确权限拒绝" in upstream
-    assert "PR 创建并回读才是" in upstream
+    assert "PR 创建并回读即是" in upstream
     assert "相互链接，说明兼容关系与必要合并顺序" in upstream
     assert "不进入个人插件发布流程" in upstream
 
@@ -239,9 +242,8 @@ def test_workspace_maps_shared_env_and_preserves_subprocess_loading() -> None:
 
     assert 'UV_PROJECT_ENVIRONMENT="${PWD}/.venv"' in workspace
     assert 'UV_PROJECT_ENVIRONMENT="<workspace>/.venv-test"' in workspace
-    assert "工作区根 `app.env` 必须在子进程中加载" in workspace
-    assert "启动时必须在子进程中 `source <workspace>/app.env`" in workspace
-    assert "测试不加载运行用 `app.env`" in workspace
+    assert "本地启动后端必须在子进程中加载工作区根 `app.env`" in workspace
+    assert "source <workspace>/app.env" in workspace
     assert "隔离临时 `CONFIG_DIR`" in workspace
     assert "`--no-sync` 不会校验已安装依赖一致性" in workspace
 
@@ -256,15 +258,16 @@ def test_maintainer_authority_preserves_shared_contracts_and_explicit_limits() -
     assert "授权来自当前用户或项目已确认语境" in workspace
     assert "不以 GitHub `WRITE`" in workspace
     assert "当前明确的不 commit/push/sync 等限制优先" in workspace
-    assert "用户要求“PR”包含跟踪并合并" in workspace
-    assert "明确 PR 创建后停止或等待他人时按该终点" in workspace
+    assert "不得把维护者个人的本地环境路径或个人工作偏好写入上游仓库规则" in workspace
+    assert "仅要求提交 PR 而未明确授权合并或发版时" in workspace
+    assert "交维护者确认放行" in workspace
     assert "同一范围的预授权" in workspace
     assert "先保存有价值的本地" in development
     assert "不把可恢复版本称为验收通过" in development
     assert "`TestCase` 文件时保留整文件迁移为 pytest 原生" in development
     for contract in ("业务架构", "SDK/Compat 兼容", "正确性", "测试隔离", "真实报告"):
         assert contract in development
-    assert "复用已明确的 PR 含 merge 语义，不重新询问终点" in delivery
+    assert "仅要求提交 PR 时在创建 PR 并回读检查后等待维护者确认放行" in delivery
     assert "contributor 自称身份" in delivery
     assert "不从 PR 推断 release" in delivery
     assert "单独的 merge 授权不替代失败归属证据或处置决定" in delivery

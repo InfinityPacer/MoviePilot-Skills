@@ -23,8 +23,8 @@
 
 ## 跟踪与合并
 
-PR 创建不是默认终态。先回读 active Ruleset、branch protection、required checks/reviews、当前 head SHA
-和 mergeability。只等待平台真正要求，或结果可能实质改变当前 PR 合并判断的 checks/review。
+根据当前任务已获授权的终态决定是否在创建 PR 后继续合并。先回读 active Ruleset、branch protection、required checks/reviews、当前 head SHA
+和 mergeability。仅授权提交 PR 时在完成上述回读后汇报等待维护者确认；已明确授权合并时，只等待平台真正要求或结果可能实质改变当前 PR 合并判断的 checks/review。
 
 已证实与当前改动无关且未被其加重或重新触达的 base/上游既有问题、无关自动化/基础设施/配额故障，
 或错误、不可达、低价值的 Review 反馈，按入口的维护者决定及证据记录处置；同一范围已获预授权时
@@ -38,8 +38,8 @@ PR 创建不是默认终态。先回读 active Ruleset、branch protection、req
 维护者的合并方式。目标仓未开放 rebase、Ruleset 不允许，或 PR 因冲突无法 rebase 时，改用平台
 允许的方式并在交付报告中说明原因。
 
-复用工作区已确认的 PR 含 merge 授权。只有明确要求 PR 创建后停止、等待其他维护者，或更近规则
-保留最终处置权且尚未授权时，PR 创建并回读才是终态。合并后回读 merged commit；工作树允许时再
+仅在当前请求或已批准计划明确包含合并授权时执行合并；未明确授权合并、要求 PR 创建后停止、等待其他维护者，或更近规则
+保留最终处置权时，PR 创建并回读即是当前终态。合并后回读 merged commit；工作树允许时再
 fast-forward 本地 base，不 stash、reset 或覆盖用户改动来强行同步。
 
 来源 issue 的最终回复附 PR URL、合并状态或 merge commit 与必要验证；进度和最终措辞遵循入口的

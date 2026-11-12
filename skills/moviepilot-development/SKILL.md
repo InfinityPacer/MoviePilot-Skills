@@ -17,7 +17,7 @@ description: Use for local development, diagnosis, reproduction, testing, runtim
 需要识别权威基线、交付路由或处理已知基线漂移时才检查 remote；需要识别时按 URL 与仓库身份
 判断角色，不按 `origin`、`upstream` 或 `fork` 等本地名称猜测。
 
-涉及 NAS 上 MoviePilot 本地插件仓库部署时，先阅读 [NAS 本地插件部署](references/nas-local-plugin-deployment.md)，尤其是热更新监测目录的更新方式。
+涉及 NAS 或远程容器实例上的 MoviePilot 插件部署与现场验证时，先阅读 [容器与本地插件部署](references/nas-local-plugin-deployment.md)，先区分市场安装目录与本地监测目录两种形态。
 
 ## 开发边界
 
