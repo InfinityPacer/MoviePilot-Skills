@@ -32,6 +32,7 @@ def build_archive(plugin_dir: Path, output: Path) -> tuple[int, str]:
 
 # secure-access 在每个运行时各装一份副本，脚本因此按运行时目录顺序解析，而不是固定到某一个。
 CONTROLLER_CANDIDATES = (
+    Path.home() / ".agents/skills/secure-access/scripts/access-controller.py",
     Path.home() / ".codex/skills/secure-access/scripts/access-controller.py",
     Path.home() / ".claude/skills/secure-access/scripts/access-controller.py",
 )

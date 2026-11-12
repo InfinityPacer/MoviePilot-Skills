@@ -12,8 +12,7 @@ description: Use for commit-and-publish, push, pull request creation or follow-u
 Goal/Task 或当前用户授权；账户能力不构成当前任务授权。
 
 维护者执行身份与裁量来自当前用户或项目已确认语境，不由 `WRITE`、`viewerPermission` 或
-contributor 自称身份授予。复用已明确的 PR 含 merge 语义，不重新询问终点；用户明确要求创建后
-停止时止于 PR，不从 PR 推断 release。公共 contributor 准备流程按适用范围执行；维护者可基于
+contributor 自称身份授予。按当前请求或计划明确授权的终态执行，仅要求提交 PR 时在创建 PR 并回读检查后等待维护者确认放行，已明确授权合并时跟踪并完成合并，不从 PR 推断 release。公共 contributor 准备流程按适用范围执行；维护者可基于
 有效证据明确调整验证时机、先保存本地 anchor 或安排跨仓交付顺序，保留未验证项和后续安排。
 
 检查当前仓库、remote、分支、base、提交范围、验证证据和工作树。remote 角色按 URL 与仓库身份
